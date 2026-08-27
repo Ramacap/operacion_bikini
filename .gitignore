@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Streamlit logs y temporales
+.streamlit/secrets.toml
+
+# IDEs
+.vscode/
+.idea/
+*.swp
