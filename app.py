@@ -1,7 +1,7 @@
 """
 app.py - Operación Bikini 🌴👙☀️
 Aplicación de seguimiento y competencia de descenso de peso con temática de Río de Janeiro.
-Diseño adaptable (responsive) para PC y smartphones con menú estilo botones 3D y gráficos interactivos.
+Diseño adaptable (responsive) para PC y smartphones con menú estilo botones 3D y gráficos interactivos de alto contraste.
 """
 
 import streamlit as st
@@ -24,8 +24,8 @@ COLORS = {
     "teal":        "#06D6A0",
     "teal_dark":   "#058C68",
     "ocean":       "#0077B6",
-    "navy":        "#2D3748",
-    "gray":        "#718096",
+    "navy":        "#1A202C",
+    "gray":        "#4A5568",
 }
 
 # Paleta de colores vibrantes para gráfico grupal (estilo Copacabana)
@@ -50,7 +50,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Inyección de estilos CSS personalizados
+# Inyección de estilos CSS personalizados con ALTO CONTRASTE y compatibilidad móvil total
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&display=swap');
@@ -58,34 +58,43 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Poppins', sans-serif;
     }
+
+    /* =========================================================
+       FORZAR TEMA CLARO Y TIPOGRAFÍAS DE ALTO CONTRASTE
+       Evita que el modo oscuro del sistema ponga textos o fondos invisibles
+       ========================================================= */
+    .stApp, .stApp > div, [data-testid="stAppViewContainer"], [data-testid="block-container"] {
+        background-color: #FFFDF9 !important;
+        color: #1A202C !important;
+    }
     
+    /* Tipografía general */
+    p, span, label, div, small, strong, b {
+        color: #1A202C;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #1A202C !important;
+        font-weight: 800 !important;
+    }
+    .stCaption, [data-testid="stCaptionContainer"] * {
+        color: #4A5568 !important;
+        font-weight: 500 !important;
+    }
+
     /* Encabezado Principal */
     .main-header {
         background: linear-gradient(135deg, #FF6B6B 0%, #FFBE0B 50%, #00F5D4 100%);
         padding: 26px 16px;
         border-radius: 20px;
-        color: white;
+        color: white !important;
         text-align: center;
         margin-bottom: 18px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         position: relative;
         overflow: hidden;
     }
-    .main-header::before {
-        content: '';
-        position: absolute;
-        top: -30px; right: -30px;
-        width: 120px; height: 120px;
-        background: rgba(255,255,255,0.08);
-        border-radius: 50%;
-    }
-    .main-header::after {
-        content: '';
-        position: absolute;
-        bottom: -40px; left: -20px;
-        width: 160px; height: 160px;
-        background: rgba(255,255,255,0.06);
-        border-radius: 50%;
+    .main-header * {
+        color: white !important;
     }
     .main-header h1 {
         color: white !important;
@@ -94,17 +103,13 @@ st.markdown("""
         margin: 0;
         letter-spacing: 1.5px;
         text-shadow: 2px 3px 6px rgba(0,0,0,0.25);
-        position: relative;
-        z-index: 1;
     }
     .main-header p {
+        color: white !important;
         font-size: 1.05rem;
         margin-top: 6px;
         margin-bottom: 0;
-        opacity: 0.95;
         font-weight: 600;
-        position: relative;
-        z-index: 1;
     }
     
     /* Banner de Cuenta Regresiva */
@@ -121,17 +126,20 @@ st.markdown("""
         gap: 10px;
         box-shadow: 0 3px 10px rgba(0,0,0,0.06);
     }
+    .countdown-card * {
+        color: #1A202C;
+    }
     .countdown-days {
         font-size: 2rem;
         font-weight: 900;
-        color: #FF6B6B;
+        color: #FF6B6B !important;
         line-height: 1;
     }
     .countdown-days small {
         font-size: 0.9rem;
-        font-weight: 600;
+        font-weight: 700;
         display: block;
-        color: #E63946;
+        color: #E63946 !important;
     }
     
     /* Salón de la Gloria */
@@ -142,19 +150,19 @@ st.markdown("""
         padding: 20px;
         margin-bottom: 22px;
         box-shadow: 0 6px 16px rgba(243, 156, 18, 0.22);
-        position: relative;
-        overflow: hidden;
     }
-    .hall-of-fame-card::after {
-        content: '👑';
-        position: absolute;
-        top: -10px; right: 10px;
-        font-size: 4rem;
-        opacity: 0.12;
+    .hall-of-fame-card h3 {
+        color: #B7791F !important;
+        margin: 0 0 8px 0;
     }
-    
+    .hall-of-fame-card p {
+        color: #744210 !important;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
     /* =========================================================
-       BOTONES DE NAVEGACIÓN PRINCIPAL EN 3D REALISTA Y REDONDEADOS
+       BOTONES DE NAVEGACIÓN PRINCIPAL EN 3D (TEXTO SIEMPRE VISIBLE)
        ========================================================= */
     .stTabs [data-baseweb="tab-list"] {
         gap: 12px !important;
@@ -171,9 +179,6 @@ st.markdown("""
         border-bottom: 4px solid #DD6B20 !important;
         border-radius: 35px !important;
         padding: 12px 22px !important;
-        font-weight: 800 !important;
-        font-size: 0.95rem !important;
-        color: #4A5568 !important;
         box-shadow: 0 6px 0 #DD6B20, 0 8px 14px rgba(221, 107, 32, 0.25) !important;
         transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
         cursor: pointer !important;
@@ -182,9 +187,15 @@ st.markdown("""
         top: 0px !important;
     }
     
+    /* Forzar color oscuro en TODOS los textos e iconos de pestañas inactivas */
+    .stTabs [data-baseweb="tab"] * {
+        color: #1A202C !important;
+        font-weight: 800 !important;
+        font-size: 0.95rem !important;
+    }
+    
     .stTabs [data-baseweb="tab"]:hover {
         background: linear-gradient(180deg, #FFF9F0 0%, #FFE2B8 100%) !important;
-        color: #2D3748 !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 0 #DD6B20, 0 12px 18px rgba(221, 107, 32, 0.3) !important;
     }
@@ -196,23 +207,65 @@ st.markdown("""
         border-bottom: 2px solid #DD6B20 !important;
     }
     
+    /* Pestaña activa (fondo coral + texto blanco nítido) */
     .stTabs [aria-selected="true"] {
         background: linear-gradient(180deg, #FF6B6B 0%, #EE5253 100%) !important;
-        color: #FFFFFF !important;
         border: 2px solid #C53030 !important;
         border-bottom: 4px solid #9B2C2C !important;
         box-shadow: 0 6px 0 #9B2C2C, 0 10px 20px rgba(238, 82, 83, 0.4) !important;
         transform: scale(1.02) !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .stTabs [aria-selected="true"] * {
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.25);
     }
     
-    .stTabs [data-baseweb="tab-highlight"] {
-        display: none !important;
-    }
-    .stTabs [data-baseweb="tab-border"] {
+    .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] {
         display: none !important;
     }
 
+    /* =========================================================
+       TARJETAS DE MÉTRICAS CON MÁXIMO CONTRASTE
+       ========================================================= */
+    div[data-testid="stMetric"] {
+        background: #FFFFFF !important;
+        padding: 16px !important;
+        border-radius: 16px !important;
+        border: 1.5px solid #FFD166 !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+    }
+    div[data-testid="stMetricLabel"] * {
+        font-size: 0.92rem !important;
+        font-weight: 700 !important;
+        color: #4A5568 !important;
+    }
+    div[data-testid="stMetricValue"] * {
+        font-size: 1.75rem !important;
+        font-weight: 900 !important;
+        color: #1A202C !important;
+    }
+
+    /* =========================================================
+       INPUTS, SELECTS Y FORMULARIOS CLAROS
+       ========================================================= */
+    label, label * {
+        color: #1A202C !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+    }
+    .stSelectbox > div[data-baseweb="select"] > div,
+    .stTextInput > div > div,
+    .stNumberInput > div > div {
+        background-color: #FFFFFF !important;
+        border: 1.5px solid #CBD5E0 !important;
+        border-radius: 10px !important;
+    }
+    .stSelectbox [data-baseweb="select"] * {
+        color: #1A202C !important;
+        font-weight: 600 !important;
+    }
+    
     /* Botones de acción 3D en la interfaz */
     .stButton>button, .stDownloadButton>button {
         border-radius: 28px !important;
@@ -228,44 +281,31 @@ st.markdown("""
     .stButton>button:active, .stDownloadButton>button:active {
         transform: translateY(3px) !important;
         box-shadow: 0 1px 0 rgba(0,0,0,0.12) !important;
-        border-bottom: 1px solid rgba(0,0,0,0.15) !important;
     }
 
-    /* Estilo de Métricas */
-    div[data-testid="stMetricValue"] {
-        font-size: 1.8rem !important;
-        font-weight: 800 !important;
-        color: #1A202C !important;
-    }
-    div[data-testid="stMetric"] {
-        background: linear-gradient(135deg, #FFFDF9 0%, #FFF8EE 100%);
-        padding: 16px;
-        border-radius: 16px;
-        border: 1px solid #FFE3C2;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-    }
-    
     /* Tarjeta vacía de bienvenida */
     .welcome-empty {
         text-align: center;
         padding: 40px 20px;
-        background: linear-gradient(135deg, #FFFDF9 0%, #FFF8EE 100%);
+        background: #FFFFFF;
         border-radius: 16px;
         border: 2px dashed #FFD166;
         margin-top: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
     }
     .welcome-empty .emoji-big { font-size: 3.5rem; }
-    .welcome-empty h3 { color: #FF6B6B; margin-top: 12px; }
-    .welcome-empty p { color: #718096; max-width: 520px; margin: 8px auto 0; font-size: 0.95rem; }
+    .welcome-empty h3 { color: #FF6B6B !important; margin-top: 12px; }
+    .welcome-empty p { color: #4A5568 !important; max-width: 520px; margin: 8px auto 0; font-size: 0.95rem; font-weight: 500; }
 
     /* Pie de página */
     .footer-rio {
         text-align: center;
-        padding: 18px 10px;
+        padding: 20px 10px;
         margin-top: 30px;
-        color: #A0AEC0;
+        color: #718096 !important;
         font-size: 0.85rem;
-        border-top: 1px solid #EDF2F7;
+        font-weight: 600;
+        border-top: 1px solid #E2E8F0;
     }
 
     /* Adaptación Responsive para Móviles */
@@ -279,53 +319,13 @@ st.markdown("""
             border-radius: 25px !important;
             box-shadow: 0 4px 0 #DD6B20, 0 6px 10px rgba(221, 107, 32, 0.2) !important;
         }
-        div[data-testid="stMetricValue"] { font-size: 1.35rem !important; }
+        div[data-testid="stMetricValue"] * { font-size: 1.35rem !important; }
         .countdown-card {
             font-size: 0.88rem;
             flex-direction: column;
             text-align: center;
         }
         .countdown-days { font-size: 1.5rem; }
-    }
-
-    /* =========================================================
-       FORZAR TEMA CLARO — evitar que el modo oscuro del dispositivo
-       afecte el fondo de la app o los gráficos
-       ========================================================= */
-    /* Fondo de la página siempre blanco cálido */
-    .stApp, .stApp > div, [data-testid="stAppViewContainer"], [data-testid="block-container"] {
-        background-color: #FFFDF9 !important;
-        color: #2D3748 !important;
-    }
-    /* Sidebar (aunque esté colapsada) */
-    [data-testid="stSidebar"] {
-        background-color: #FFF3E2 !important;
-    }
-    /* Contenedores secundarios (st.container, formularios) */
-    [data-testid="stVerticalBlock"] > div,
-    .stForm, div[data-testid="stForm"],
-    section[data-testid="stSidebar"] {
-        background-color: transparent !important;
-    }
-    /* Gráficos Plotly: fondo explícitamente blanco */
-    .js-plotly-plot .plotly, .js-plotly-plot .plotly .bg {
-        fill: #ffffff !important;
-        background: #ffffff !important;
-    }
-    /* Inputs, selectboxes y widgets */
-    .stSelectbox > div[data-baseweb="select"] > div,
-    .stTextInput > div > div,
-    .stNumberInput > div > div {
-        background-color: #FFFFFF !important;
-        color: #2D3748 !important;
-    }
-    /* Headers de sección */
-    h1, h2, h3, h4, h5, h6 {
-        color: #2D3748 !important;
-    }
-    /* Dataframe */
-    [data-testid="stDataFrame"] {
-        background-color: #FFFFFF !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -413,7 +413,7 @@ with tab_mi_progreso:
             options = ["-- Elige tu Apodo en la lista --"] + all_users
             
             # Inicializar valor si no existe o si el apodo guardado ya no está en la lista
-            if "select_user_progress_dropdown" not in st.session_state:
+            if "select_user_progress_dropdown" not in st.session_state or st.session_state["select_user_progress_dropdown"] not in options:
                 if st.session_state.selected_nickname and st.session_state.selected_nickname in all_users:
                     st.session_state["select_user_progress_dropdown"] = st.session_state.selected_nickname
                 else:
@@ -528,7 +528,7 @@ with tab_mi_progreso:
                     st.markdown(f"**Progreso hacia el objetivo ({stats['target_weight']} kg): {stats['progress_pct']}%**")
                     st.progress(prog_pct / 100.0)
                 
-                # Gráfico de evolución individual con area degradada y línea de meta punteada
+                # Gráfico de evolución individual con fondo blanco explícito y etiquetas oscuras
                 st.markdown("---")
                 st.subheader(f"📈 Evolución de Peso — {selected_user}")
                 
@@ -538,7 +538,7 @@ with tab_mi_progreso:
                 
                 fig_user = go.Figure()
                 
-                # Área degradada debajo de la curva de peso
+                # Área degradada debajo de la curva
                 fig_user.add_trace(go.Scatter(
                     x=df_user["Fecha_dt"],
                     y=df_user["weight"],
@@ -547,11 +547,7 @@ with tab_mi_progreso:
                     showlegend=False,
                     hoverinfo='skip',
                     fill='tozeroy',
-                    fillcolor='rgba(255, 107, 107, 0.08)',
-                    fillgradient=dict(
-                        type='vertical',
-                        colorscale=[[0, 'rgba(255,107,107,0.0)'], [1, 'rgba(255,107,107,0.15)']]
-                    ) if hasattr(go.Scatter, 'fillgradient') else None
+                    fillcolor='rgba(255, 107, 107, 0.12)'
                 ))
                 
                 # Línea de peso real del usuario
@@ -569,11 +565,11 @@ with tab_mi_progreso:
                 fig_user.add_hline(
                     y=stats["start_weight"],
                     line_dash="dot",
-                    line_color="#CBD5E0",
+                    line_color="#A0AEC0",
                     line_width=1.5,
                     annotation_text=f"Inicio: {stats['start_weight']} kg",
                     annotation_position="top left",
-                    annotation_font=dict(size=10, color="#A0AEC0")
+                    annotation_font=dict(size=11, color="#4A5568", family="Poppins")
                 )
                 
                 # Línea de meta punteada
@@ -584,10 +580,10 @@ with tab_mi_progreso:
                     line_width=3,
                     annotation_text=f"🎯 Meta: {stats['target_weight']} kg",
                     annotation_position="bottom right",
-                    annotation_font=dict(size=12, color=COLORS["teal_dark"], weight="bold")
+                    annotation_font=dict(size=12, color=COLORS["teal_dark"], family="Poppins")
                 )
                 
-                # Ajuste de límites del eje Y para que siempre se vean peso inicial, actual y la meta
+                # Ajuste de límites del eje Y
                 all_weights_vals = [item["weight"] for item in stats["history"]] + [stats["target_weight"], stats["start_weight"]]
                 y_min = min(all_weights_vals) - 2.0
                 y_max = max(all_weights_vals) + 2.0
@@ -595,14 +591,39 @@ with tab_mi_progreso:
                 fig_user.update_layout(
                     xaxis_title="Fecha",
                     yaxis_title="Peso (kg)",
-                    yaxis=dict(range=[y_min, y_max], gridcolor='rgba(0,0,0,0.04)'),
-                    xaxis=dict(gridcolor='rgba(0,0,0,0.04)'),
+                    yaxis=dict(
+                        range=[y_min, y_max],
+                        gridcolor='#E2E8F0',
+                        tickfont=dict(color='#1A202C', size=11, family='Poppins'),
+                        title_font=dict(color='#1A202C', size=13, family='Poppins')
+                    ),
+                    xaxis=dict(
+                        gridcolor='#E2E8F0',
+                        tickfont=dict(color='#1A202C', size=11, family='Poppins'),
+                        title_font=dict(color='#1A202C', size=13, family='Poppins')
+                    ),
                     hovermode="x unified",
+                    hoverlabel=dict(
+                        bgcolor="#FFFFFF",
+                        font_color="#1A202C",
+                        font_size=12,
+                        font_family="Poppins",
+                        bordercolor="#CBD5E0"
+                    ),
                     template="plotly_white",
                     height=420,
                     margin=dict(l=20, r=20, t=30, b=20),
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                    plot_bgcolor='rgba(255,253,249,0.5)',
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1,
+                        font=dict(color="#1A202C", size=11, family="Poppins")
+                    ),
+                    paper_bgcolor='#FFFFFF',
+                    plot_bgcolor='#FFFFFF',
+                    font=dict(color='#1A202C', family='Poppins')
                 )
                 fig_user.update_xaxes(dtick="D1", tickformat="%d/%m")
                 
@@ -677,19 +698,41 @@ with tab_general:
             )
             
             fig_group.update_layout(
+                xaxis_title="Fecha",
+                yaxis_title=view_metric,
                 hovermode="x unified",
+                hoverlabel=dict(
+                    bgcolor="#FFFFFF",
+                    font_color="#1A202C",
+                    font_size=12,
+                    font_family="Poppins",
+                    bordercolor="#CBD5E0"
+                ),
                 template="plotly_white",
                 height=500,
                 margin=dict(l=20, r=20, t=50, b=20),
                 legend=dict(
                     orientation="h",
-                    yanchor="bottom", y=1.02,
-                    xanchor="center", x=0.5,
-                    font=dict(size=12)
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="center",
+                    x=0.5,
+                    font=dict(color="#1A202C", size=12, family="Poppins")
                 ),
-                plot_bgcolor='rgba(255,253,249,0.5)',
-                yaxis=dict(gridcolor='rgba(0,0,0,0.04)'),
-                xaxis=dict(gridcolor='rgba(0,0,0,0.04)'),
+                paper_bgcolor='#FFFFFF',
+                plot_bgcolor='#FFFFFF',
+                yaxis=dict(
+                    gridcolor='#E2E8F0',
+                    tickfont=dict(color='#1A202C', size=11, family='Poppins'),
+                    title_font=dict(color='#1A202C', size=13, family='Poppins')
+                ),
+                xaxis=dict(
+                    gridcolor='#E2E8F0',
+                    tickfont=dict(color='#1A202C', size=11, family='Poppins'),
+                    title_font=dict(color='#1A202C', size=13, family='Poppins')
+                ),
+                font=dict(color='#1A202C', family='Poppins'),
+                title=dict(font=dict(color='#1A202C', size=15, family='Poppins'))
             )
             fig_group.update_xaxes(dtick="D1", tickformat="%d/%m")
             
@@ -741,21 +784,21 @@ with tab_general:
                     gap: 16px;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
                 ">
-                    <div style="font-size: 1.8rem; min-width: 45px; text-align: center;">{medal}</div>
+                    <div style="font-size: 1.8rem; min-width: 45px; text-align: center; color: #1A202C;">{medal}</div>
                     <div style="flex: 1; min-width: 120px;">
-                        <div style="font-weight: 800; font-size: 1.1rem; color: #2D3748;">{s['nickname']}</div>
-                        <div style="font-size: 0.82rem; color: #718096;">{s['start_weight']} → {s['current_weight']} kg (meta: {s['target_weight']})</div>
+                        <div style="font-weight: 800; font-size: 1.1rem; color: #1A202C;">{s['nickname']}</div>
+                        <div style="font-size: 0.82rem; color: #4A5568;">{s['start_weight']} → {s['current_weight']} kg (meta: {s['target_weight']})</div>
                     </div>
                     <div style="flex: 2; min-width: 200px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #4A5568; margin-bottom: 4px;">
-                            <span>Bajó <b>{s['total_lost']} kg</b></span>
-                            <span><b>{s['progress_pct']}%</b> del objetivo</span>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #1A202C; margin-bottom: 4px;">
+                            <span>Bajó <b style="color:#1A202C;">{s['total_lost']} kg</b></span>
+                            <span><b style="color:#1A202C;">{s['progress_pct']}%</b> del objetivo</span>
                         </div>
-                        <div style="background: #EDF2F7; border-radius: 10px; height: 10px; overflow: hidden;">
+                        <div style="background: #E2E8F0; border-radius: 10px; height: 10px; overflow: hidden;">
                             <div style="background: {prog_color}; width: {prog_bar_width}%; height: 100%; border-radius: 10px; transition: width 0.5s;"></div>
                         </div>
                     </div>
-                    <div style="min-width: 130px; text-align: right; font-size: 0.85rem; font-weight: 600; color: {'#058C68' if s['goal_achieved'] else '#718096'};">
+                    <div style="min-width: 130px; text-align: right; font-size: 0.85rem; font-weight: 700; color: {'#058C68' if s['goal_achieved'] else '#4A5568'};">
                         {status_text}
                     </div>
                 </div>
@@ -811,6 +854,10 @@ with tab_historial:
     if not all_users:
         st.info("No hay participantes cargadas.")
     else:
+        # Asegurar que la participante en session_state siga existiendo
+        if "select_user_to_edit_history" in st.session_state and st.session_state["select_user_to_edit_history"] not in all_users:
+            st.session_state.pop("select_user_to_edit_history", None)
+
         user_to_edit = st.selectbox("Selecciona participante:", options=all_users, key="select_user_to_edit_history")
         user_stats = dm.get_user_stats(user_to_edit)
         
@@ -829,6 +876,10 @@ with tab_historial:
                 st.markdown("**Acciones de corrección:**")
                 dates_available = [item["date"] for item in history]
                 
+                # Validar que la fecha seleccionada exista
+                if "select_date_to_edit_history" in st.session_state and st.session_state["select_date_to_edit_history"] not in dates_available:
+                    st.session_state.pop("select_date_to_edit_history", None)
+
                 selected_date = st.selectbox("Selecciona la fecha a modificar o eliminar:", options=dates_available, key="select_date_to_edit_history")
                 
                 current_val = next((item["weight"] for item in history if item["date"] == selected_date), 70.0)
@@ -857,6 +908,8 @@ with tab_historial:
                 if st.button(f"🗑️ Eliminar pesaje del {selected_date}", key=f"btn_delete_entry_{user_to_edit}_{selected_date}", type="secondary"):
                     succ, msg = dm.delete_weight_entry(user_to_edit, selected_date)
                     if succ:
+                        st.session_state.pop("select_date_to_edit_history", None)
+                        st.session_state.pop("input_corrected_weight_val", None)
                         st.success(msg)
                         st.rerun()
                     else:
@@ -887,10 +940,10 @@ with tab_historial:
             st.markdown(
                 f"""
                 <div style="background:#FFF5F5; border:2px solid #FC8181; border-radius:14px; padding:18px 20px; margin-top:8px;">
-                    <p style="color:#C53030; font-weight:800; font-size:1.05rem; margin:0 0 8px 0;">
+                    <p style="color:#C53030 !important; font-weight:800; font-size:1.05rem; margin:0 0 8px 0;">
                         🚨 ¿Estás segura de que querés eliminar a <em>'{user_to_edit}'</em>?
                     </p>
-                    <p style="color:#742A2A; font-size:0.9rem; margin:0;">
+                    <p style="color:#742A2A !important; font-size:0.9rem; margin:0;">
                         Esta acción borrará <strong>todos sus pesajes e historial</strong> de forma permanente.
                         No hay forma de deshacer esta operación.
                     </p>
@@ -910,11 +963,16 @@ with tab_historial:
                 ):
                     succ, msg = dm.delete_user(user_to_edit)
                     if succ:
-                        # Limpiar estado relacionado a ese usuario
-                        st.session_state[confirm_key] = False
+                        # Limpiar todo el estado de session_state para evitar errores de selección inexistente
+                        st.session_state.pop(confirm_key, None)
+                        st.session_state.pop("select_user_to_edit_history", None)
+                        st.session_state.pop("select_date_to_edit_history", None)
+                        st.session_state.pop("input_corrected_weight_val", None)
+                        
                         if st.session_state.get("selected_nickname") == user_to_edit:
                             st.session_state.selected_nickname = None
                             st.session_state["select_user_progress_dropdown"] = "-- Elige tu Apodo en la lista --"
+                            
                         if "multiselect_group_users_widget" in st.session_state:
                             st.session_state["multiselect_group_users_widget"] = [
                                 u for u in st.session_state["multiselect_group_users_widget"]
