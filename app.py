@@ -676,7 +676,7 @@ if st.session_state.active_nav_tab == "🏖️ Mi Progreso":
                         tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                         title_font=dict(color='#1A202C', size=13, family='Poppins')
                     ),
-                    hovermode="x unified",
+                    hovermode="closest",
                     dragmode=False,
                     hoverlabel=dict(
                         bgcolor="#FFFFFF",
@@ -768,15 +768,15 @@ elif st.session_state.active_nav_tab == "📊 Competencia":
             )
             
             fig_group.update_traces(
-                line=dict(width=3, shape='spline'),
-                marker=dict(size=9, line=dict(color='white', width=1.5)),
-                hovertemplate="<b>%{data.name}</b><br>Fecha: %{x|%d/%m/%Y}<br>" + view_metric + ": <b>%{y:.1f} kg</b><extra></extra>"
+                line=dict(width=3.5, shape='spline'),
+                marker=dict(size=10, line=dict(color='white', width=2)),
+                hovertemplate="👤 <b>%{data.name}</b><br>📅 Fecha: %{x|%d/%m/%Y}<br>⚖️ " + view_metric + ": <b>%{y:.1f} kg</b><extra></extra>"
             )
             
             fig_group.update_layout(
                 xaxis_title="Fecha",
                 yaxis_title=view_metric,
-                hovermode="x unified",
+                hovermode="closest",
                 dragmode=False,
                 hoverlabel=dict(
                     bgcolor="#FFFFFF",
@@ -852,6 +852,7 @@ elif st.session_state.active_nav_tab == "📊 Competencia":
                 prog_bar_width = min(max(s['progress_pct'], 0), 100)
                 prog_color = "#06D6A0" if s["goal_achieved"] else "#FF6B6B"
                 status_text = "👑 ¡Meta Lograda!" if s["goal_achieved"] else f"Faltan {s['remaining_to_goal']} kg"
+                last_date_formatted = pd.to_datetime(s["latest_date"]).strftime("%d/%m/%Y")
                 
                 st.markdown(f"""
                 <div style="
@@ -867,9 +868,10 @@ elif st.session_state.active_nav_tab == "📊 Competencia":
                     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
                 ">
                     <div style="font-size: 1.6rem; min-width: 40px; text-align: center; color: #1A202C;">{medal}</div>
-                    <div style="flex: 1; min-width: 110px;">
+                    <div style="flex: 1; min-width: 120px;">
                         <div style="font-weight: 800; font-size: 1.05rem; color: #1A202C;">{s['nickname']}</div>
                         <div style="font-size: 0.8rem; color: #4A5568;">{s['start_weight']} → {s['current_weight']} kg (meta: {s['target_weight']})</div>
+                        <div style="font-size: 0.74rem; color: #718096; margin-top: 2px;">📅 Últ. carga: <b>{last_date_formatted}</b></div>
                     </div>
                     <div style="flex: 2; min-width: 180px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #1A202C; margin-bottom: 4px;">
