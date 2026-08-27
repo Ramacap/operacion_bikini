@@ -287,6 +287,46 @@ st.markdown("""
         }
         .countdown-days { font-size: 1.5rem; }
     }
+
+    /* =========================================================
+       FORZAR TEMA CLARO — evitar que el modo oscuro del dispositivo
+       afecte el fondo de la app o los gráficos
+       ========================================================= */
+    /* Fondo de la página siempre blanco cálido */
+    .stApp, .stApp > div, [data-testid="stAppViewContainer"], [data-testid="block-container"] {
+        background-color: #FFFDF9 !important;
+        color: #2D3748 !important;
+    }
+    /* Sidebar (aunque esté colapsada) */
+    [data-testid="stSidebar"] {
+        background-color: #FFF3E2 !important;
+    }
+    /* Contenedores secundarios (st.container, formularios) */
+    [data-testid="stVerticalBlock"] > div,
+    .stForm, div[data-testid="stForm"],
+    section[data-testid="stSidebar"] {
+        background-color: transparent !important;
+    }
+    /* Gráficos Plotly: fondo explícitamente blanco */
+    .js-plotly-plot .plotly, .js-plotly-plot .plotly .bg {
+        fill: #ffffff !important;
+        background: #ffffff !important;
+    }
+    /* Inputs, selectboxes y widgets */
+    .stSelectbox > div[data-baseweb="select"] > div,
+    .stTextInput > div > div,
+    .stNumberInput > div > div {
+        background-color: #FFFFFF !important;
+        color: #2D3748 !important;
+    }
+    /* Headers de sección */
+    h1, h2, h3, h4, h5, h6 {
+        color: #2D3748 !important;
+    }
+    /* Dataframe */
+    [data-testid="stDataFrame"] {
+        background-color: #FFFFFF !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -821,6 +861,77 @@ with tab_historial:
                         st.rerun()
                     else:
                         st.error(msg)
+
+        # --------------------------------------------------
+        # ZONA DE PELIGRO: Eliminar Participante Completa
+        # --------------------------------------------------
+        st.markdown("---")
+        st.markdown("### ⚠️ Zona de Peligro")
+        
+        # Inicializar estado de confirmación de borrado
+        confirm_key = f"confirm_delete_user_{user_to_edit}"
+        if confirm_key not in st.session_state:
+            st.session_state[confirm_key] = False
+
+        if not st.session_state[confirm_key]:
+            # Primer paso: botón inicial
+            if st.button(
+                f"🗑️ Eliminar participante '{user_to_edit}' (borra todos sus datos)",
+                key=f"btn_delete_user_initial_{user_to_edit}",
+                type="secondary"
+            ):
+                st.session_state[confirm_key] = True
+                st.rerun()
+        else:
+            # Segundo paso: panel de confirmación
+            st.markdown(
+                f"""
+                <div style="background:#FFF5F5; border:2px solid #FC8181; border-radius:14px; padding:18px 20px; margin-top:8px;">
+                    <p style="color:#C53030; font-weight:800; font-size:1.05rem; margin:0 0 8px 0;">
+                        🚨 ¿Estás segura de que querés eliminar a <em>'{user_to_edit}'</em>?
+                    </p>
+                    <p style="color:#742A2A; font-size:0.9rem; margin:0;">
+                        Esta acción borrará <strong>todos sus pesajes e historial</strong> de forma permanente.
+                        No hay forma de deshacer esta operación.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+            col_confirm, col_cancel = st.columns(2)
+            with col_confirm:
+                if st.button(
+                    "✅ Sí, eliminar definitivamente",
+                    key=f"btn_confirm_delete_user_{user_to_edit}",
+                    type="primary",
+                    use_container_width=True
+                ):
+                    succ, msg = dm.delete_user(user_to_edit)
+                    if succ:
+                        # Limpiar estado relacionado a ese usuario
+                        st.session_state[confirm_key] = False
+                        if st.session_state.get("selected_nickname") == user_to_edit:
+                            st.session_state.selected_nickname = None
+                            st.session_state["select_user_progress_dropdown"] = "-- Elige tu Apodo en la lista --"
+                        if "multiselect_group_users_widget" in st.session_state:
+                            st.session_state["multiselect_group_users_widget"] = [
+                                u for u in st.session_state["multiselect_group_users_widget"]
+                                if u != user_to_edit
+                            ]
+                        st.success(f"✅ '{user_to_edit}' fue eliminada del sistema correctamente.")
+                        st.rerun()
+                    else:
+                        st.error(msg)
+            with col_cancel:
+                if st.button(
+                    "❌ Cancelar",
+                    key=f"btn_cancel_delete_user_{user_to_edit}",
+                    use_container_width=True
+                ):
+                    st.session_state[confirm_key] = False
+                    st.rerun()
 
 
 # =========================================================
