@@ -1,8 +1,8 @@
 """
 app.py - Operación Bikini 🌴👙☀️
 Aplicación de seguimiento y competencia de descenso de peso con temática de Río de Janeiro.
-Diseño adaptable (responsive) con menú de botones 2x2 para móviles, tipografías oscuras de alto contraste
-y gráficos fijos sin zoom accidental para celulares.
+Diseño adaptable (responsive) con menú de botones 2x2 para móviles, tipografías oscuras de alto contraste,
+menús desplegables 100% legibles en blanco/negro y botones unificados con estilo 3D vibrante.
 """
 
 import streamlit as st
@@ -66,7 +66,7 @@ st.markdown("""
     }
 
     /* =========================================================
-       INPUTS, SELECTBOXES Y FORMULARIOS — TEXTO SIEMPRE NEGRO
+       INPUTS Y FORMULARIOS — TEXTO SIEMPRE NEGRO
        ========================================================= */
     input, input[type="text"], input[type="number"], textarea {
         color: #1A202C !important;
@@ -80,34 +80,72 @@ st.markdown("""
         border-color: #FF8E53 !important;
         box-shadow: 0 0 0 2px rgba(255, 142, 83, 0.25) !important;
     }
-    
-    /* Selectboxes y Dropdowns */
-    div[data-baseweb="select"] {
+
+    /* =========================================================
+       MENÚS DESPLEGABLES Y POPOVERS (SELECTBOX / MULTISELECT)
+       Fondo siempre blanco y texto siempre negro
+       ========================================================= */
+    div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
+        border: 2px solid #CBD5E0 !important;
         border-radius: 12px !important;
     }
     div[data-baseweb="select"] * {
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
-        font-weight: 600 !important;
     }
-    div[data-baseweb="popover"], div[data-baseweb="popover"] * {
-        background-color: #FFFFFF !important;
-        color: #1A202C !important;
-    }
+    
+    /* Popover desplegado (fuera del contenedor normal) */
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    div[data-baseweb="menu"],
     ul[role="listbox"] {
         background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        border: 2px solid #FFD166 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
     }
-    li[role="option"] {
+    
+    /* Opciones dentro del menú desplegable */
+    li[role="option"],
+    div[role="option"],
+    ul[role="listbox"] li {
         background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
         color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        font-weight: 700 !important;
+        padding: 10px 14px !important;
     }
-    li[role="option"] * {
+    li[role="option"] *,
+    div[role="option"] *,
+    ul[role="listbox"] li * {
         color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        background-color: transparent !important;
     }
-    li[role="option"]:hover, li[role="option"][aria-selected="true"] {
+    
+    /* Opción seleccionada o con cursor encima */
+    li[role="option"]:hover,
+    li[role="option"]:hover *,
+    li[role="option"][aria-selected="true"],
+    li[role="option"][aria-selected="true"] * {
         background-color: #FFE3C2 !important;
         color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+    }
+    
+    /* Etiquetas del Multiselect (tags seleccionadas) */
+    div[data-baseweb="tag"] {
+        background-color: #FFF0E5 !important;
+        border: 1.5px solid #F6AD55 !important;
+        border-radius: 14px !important;
+    }
+    div[data-baseweb="tag"] * {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        font-weight: 700 !important;
     }
 
     /* Encabezado Principal */
@@ -181,73 +219,81 @@ st.markdown("""
     .hall-of-fame-card p {
         color: #744210 !important;
         margin: 0;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
     }
 
     /* =========================================================
-       BOTONES DEL MENÚ DE NAVEGACIÓN (3D, VISIBLES, 2x2 EN MÓVIL)
+       TODOS LOS BOTONES UNIFICADOS EN 3D (CORAL / CREMA / ALTO CONTRASTE)
        ========================================================= */
+    /* 1. Botones Primarios y de Envío de Formularios (Guardar Pesaje, Registrar, Confirmar) */
+    button[kind="primaryFormSubmit"],
+    button[data-testid="baseButton-primary"],
+    div[data-testid="stFormSubmitButton"] > button,
     .nav-btn-active button {
         background: linear-gradient(180deg, #FF6B6B 0%, #EE5253 100%) !important;
         border: 2px solid #C53030 !important;
         border-bottom: 4px solid #9B2C2C !important;
         color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
         font-weight: 800 !important;
-        font-size: 0.95rem !important;
-        border-radius: 20px !important;
+        font-size: 1rem !important;
+        border-radius: 25px !important;
         box-shadow: 0 4px 0 #9B2C2C, 0 6px 12px rgba(238, 82, 83, 0.35) !important;
-        padding: 12px 10px !important;
+        padding: 12px 18px !important;
         text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+        cursor: pointer !important;
     }
+    button[kind="primaryFormSubmit"] *,
+    button[data-testid="baseButton-primary"] *,
+    div[data-testid="stFormSubmitButton"] > button *,
+    .nav-btn-active button * {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        font-weight: 800 !important;
+    }
+
+    /* 2. Botones Secundarios y de Acción (Menú inactivo, Borrar selección, Limpiar, etc.) */
+    .stButton > button,
+    button[data-testid="baseButton-secondary"],
+    .stDownloadButton > button,
     .nav-btn-inactive button {
         background: linear-gradient(180deg, #FFFFFF 0%, #FFF0D4 100%) !important;
         border: 2px solid #F6AD55 !important;
         border-bottom: 4px solid #DD6B20 !important;
         color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
         font-weight: 800 !important;
         font-size: 0.95rem !important;
-        border-radius: 20px !important;
+        border-radius: 25px !important;
         box-shadow: 0 4px 0 #DD6B20, 0 6px 10px rgba(221, 107, 32, 0.15) !important;
-        padding: 12px 10px !important;
+        padding: 12px 16px !important;
+        cursor: pointer !important;
     }
-    .nav-btn-inactive button:hover {
-        background: #FFE2B8 !important;
-        transform: translateY(-2px);
-    }
-    .nav-btn-active button:active, .nav-btn-inactive button:active {
-        transform: translateY(3px) !important;
-        box-shadow: 0 1px 0 #DD6B20 !important;
+    .stButton > button *,
+    button[data-testid="baseButton-secondary"] *,
+    .stDownloadButton > button *,
+    .nav-btn-inactive button * {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        font-weight: 800 !important;
     }
 
-    /* Botones de acción estándar (3D Naranja/Pastel) */
-    .stButton>button {
-        background: linear-gradient(180deg, #FFF6EC 0%, #FFE5CE 100%) !important;
-        border: 2px solid #F6AD55 !important;
-        border-bottom: 3px solid #DD6B20 !important;
-        color: #1A202C !important;
-        font-weight: 800 !important;
-        border-radius: 22px !important;
-        box-shadow: 0 3px 0 #DD6B20, 0 4px 8px rgba(0,0,0,0.06) !important;
-        padding: 8px 16px !important;
+    /* Efectos hover y active para todos los botones */
+    .stButton > button:hover,
+    div[data-testid="stFormSubmitButton"] > button:hover,
+    .stDownloadButton > button:hover,
+    .nav-btn-inactive button:hover {
+        background: #FFE2B8 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 0 #DD6B20, 0 8px 14px rgba(221, 107, 32, 0.25) !important;
     }
-    .stButton>button:hover {
-        background: #FFD9B8 !important;
-        color: #1A202C !important;
-    }
-    .stButton>button:active {
-        transform: translateY(2px) !important;
-        box-shadow: 0 1px 0 #DD6B20 !important;
-    }
-    
-    /* Botones primarios (formularios / confirmar) */
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"], button[kind="primary"] {
-        background: linear-gradient(180deg, #FF6B6B 0%, #EE5253 100%) !important;
-        border: 2px solid #C53030 !important;
-        border-bottom: 4px solid #9B2C2C !important;
-        color: #FFFFFF !important;
-        font-weight: 800 !important;
-        border-radius: 25px !important;
-        box-shadow: 0 4px 0 #9B2C2C !important;
+    .stButton > button:active,
+    div[data-testid="stFormSubmitButton"] > button:active,
+    .stDownloadButton > button:active,
+    .nav-btn-active button:active,
+    .nav-btn-inactive button:active {
+        transform: translateY(3px) !important;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.2) !important;
     }
 
     /* =========================================================
@@ -400,7 +446,7 @@ with nav_r2_c2:
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Fila 3 del Menú (1 botón centrado / ancho)
+# Fila 3 del Menú (1 botón centrado)
 nav_r3_c1, nav_r3_c2, nav_r3_c3 = st.columns([1, 2, 1])
 with nav_r3_c2:
     btn_class5 = "nav-btn-active" if st.session_state.active_nav_tab == "💾 Copia de Seguridad" else "nav-btn-inactive"
@@ -620,18 +666,18 @@ if st.session_state.active_nav_tab == "🏖️ Mi Progreso":
                     yaxis=dict(
                         range=[y_min, y_max],
                         gridcolor='#E2E8F0',
-                        fixedrange=True,  # Desactiva zoom accidental en móvil
+                        fixedrange=True,
                         tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                         title_font=dict(color='#1A202C', size=13, family='Poppins')
                     ),
                     xaxis=dict(
                         gridcolor='#E2E8F0',
-                        fixedrange=True,  # Desactiva zoom accidental en móvil
+                        fixedrange=True,
                         tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                         title_font=dict(color='#1A202C', size=13, family='Poppins')
                     ),
                     hovermode="x unified",
-                    dragmode=False,       # Desactiva arrastrar/pan en móvil
+                    dragmode=False,
                     hoverlabel=dict(
                         bgcolor="#FFFFFF",
                         font_color="#1A202C",
@@ -731,7 +777,7 @@ elif st.session_state.active_nav_tab == "📊 Competencia":
                 xaxis_title="Fecha",
                 yaxis_title=view_metric,
                 hovermode="x unified",
-                dragmode=False,       # Desactiva arrastrar/pan en móvil
+                dragmode=False,
                 hoverlabel=dict(
                     bgcolor="#FFFFFF",
                     font_color="#1A202C",
@@ -754,13 +800,13 @@ elif st.session_state.active_nav_tab == "📊 Competencia":
                 plot_bgcolor='#FFFFFF',
                 yaxis=dict(
                     gridcolor='#E2E8F0',
-                    fixedrange=True,  # Desactiva zoom accidental en móvil
+                    fixedrange=True,
                     tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                     title_font=dict(color='#1A202C', size=13, family='Poppins')
                 ),
                 xaxis=dict(
                     gridcolor='#E2E8F0',
-                    fixedrange=True,  # Desactiva zoom accidental en móvil
+                    fixedrange=True,
                     tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                     title_font=dict(color='#1A202C', size=13, family='Poppins')
                 ),
@@ -927,7 +973,7 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
                         format="%.1f",
                         key="input_corrected_weight_val"
                     )
-                    btn_update = st.form_submit_button("💾 Guardar Corrección")
+                    btn_update = st.form_submit_button("💾 Guardar Corrección", use_container_width=True)
                     
                     if btn_update:
                         succ, msg = dm.update_weight_entry(user_to_edit, selected_date, corrected_weight)
@@ -938,7 +984,7 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
                             st.error(msg)
                 
                 st.markdown("---")
-                if st.button(f"🗑️ Eliminar pesaje del {selected_date}", key=f"btn_delete_entry_{user_to_edit}_{selected_date}"):
+                if st.button(f"🗑️ Eliminar pesaje del {selected_date}", key=f"btn_delete_entry_{user_to_edit}_{selected_date}", use_container_width=True):
                     succ, msg = dm.delete_weight_entry(user_to_edit, selected_date)
                     if succ:
                         st.session_state.pop("select_date_to_edit_history", None)
@@ -961,7 +1007,8 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
         if not st.session_state[confirm_key]:
             if st.button(
                 f"🗑️ Eliminar a '{user_to_edit}' y todos sus datos",
-                key=f"btn_delete_user_initial_{user_to_edit}"
+                key=f"btn_delete_user_initial_{user_to_edit}",
+                use_container_width=True
             ):
                 st.session_state[confirm_key] = True
                 st.rerun()
@@ -1054,7 +1101,7 @@ elif st.session_state.active_nav_tab == "💾 Copia de Seguridad":
     st.subheader("🎲 Datos de Prueba para Demostración")
     st.caption("Si quieres probar la app con participantes de ejemplo:")
     
-    if st.button("🌴 Cargar Participantes de Demostración (Demo)", key="btn_load_demo_sample_data"):
+    if st.button("🌴 Cargar Participantes de Demostración (Demo)", key="btn_load_demo_sample_data", use_container_width=True):
         demo_users = {
             "Valeria":  {"start": 74.5, "target": 68.0, "logs": [("2026-08-15", 74.5), ("2026-08-18", 74.0), ("2026-08-20", 73.2), ("2026-08-23", 72.6), ("2026-08-27", 72.0)]},
             "Claudia":  {"start": 69.0, "target": 64.0, "logs": [("2026-08-15", 69.0), ("2026-08-18", 68.5), ("2026-08-21", 68.1), ("2026-08-24", 67.8), ("2026-08-27", 67.3)]},
