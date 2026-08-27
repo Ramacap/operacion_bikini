@@ -1,7 +1,8 @@
 """
 app.py - Operación Bikini 🌴👙☀️
 Aplicación de seguimiento y competencia de descenso de peso con temática de Río de Janeiro.
-Diseño adaptable (responsive) para PC y smartphones con menú estilo botones 3D y gráficos interactivos de alto contraste.
+Diseño adaptable (responsive) con menú de botones 2x2 para móviles, tipografías oscuras de alto contraste
+y gráficos fijos sin zoom accidental para celulares.
 """
 
 import streamlit as st
@@ -10,23 +11,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, date
 import data_manager as dm
-
-# Colores temáticos Río de Janeiro
-COLORS = {
-    "coral":       "#FF6B6B",
-    "coral_dark":  "#E63946",
-    "sunset":      "#FF8E53",
-    "gold":        "#FFBE0B",
-    "gold_dark":   "#F6AD55",
-    "sand":        "#FFF3E2",
-    "sand_light":  "#FFFDF9",
-    "turquoise":   "#00F5D4",
-    "teal":        "#06D6A0",
-    "teal_dark":   "#058C68",
-    "ocean":       "#0077B6",
-    "navy":        "#1A202C",
-    "gray":        "#4A5568",
-}
 
 # Paleta de colores vibrantes para gráfico grupal (estilo Copacabana)
 TROPICAL_PALETTE = [
@@ -60,8 +44,8 @@ st.markdown("""
     }
 
     /* =========================================================
-       FORZAR TEMA CLARO Y TIPOGRAFÍAS DE ALTO CONTRASTE
-       Evita que el modo oscuro del sistema ponga textos o fondos invisibles
+       FORZAR TEMA CLARO Y TIPOGRAFÍAS EN NEGRO / OSCURO
+       Evita que el modo oscuro del móvil ponga textos o fondos invisibles
        ========================================================= */
     .stApp, .stApp > div, [data-testid="stAppViewContainer"], [data-testid="block-container"] {
         background-color: #FFFDF9 !important;
@@ -69,8 +53,8 @@ st.markdown("""
     }
     
     /* Tipografía general */
-    p, span, label, div, small, strong, b {
-        color: #1A202C;
+    p, span, label, div, small, strong, b, li {
+        color: #1A202C !important;
     }
     h1, h2, h3, h4, h5, h6 {
         color: #1A202C !important;
@@ -78,65 +62,104 @@ st.markdown("""
     }
     .stCaption, [data-testid="stCaptionContainer"] * {
         color: #4A5568 !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
+    }
+
+    /* =========================================================
+       INPUTS, SELECTBOXES Y FORMULARIOS — TEXTO SIEMPRE NEGRO
+       ========================================================= */
+    input, input[type="text"], input[type="number"], textarea {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        background-color: #FFFFFF !important;
+        border: 2px solid #CBD5E0 !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+    }
+    input:focus, textarea:focus {
+        border-color: #FF8E53 !important;
+        box-shadow: 0 0 0 2px rgba(255, 142, 83, 0.25) !important;
+    }
+    
+    /* Selectboxes y Dropdowns */
+    div[data-baseweb="select"] {
+        background-color: #FFFFFF !important;
+        border-radius: 12px !important;
+    }
+    div[data-baseweb="select"] * {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        font-weight: 600 !important;
+    }
+    div[data-baseweb="popover"], div[data-baseweb="popover"] * {
+        background-color: #FFFFFF !important;
+        color: #1A202C !important;
+    }
+    ul[role="listbox"] {
+        background-color: #FFFFFF !important;
+    }
+    li[role="option"] {
+        background-color: #FFFFFF !important;
+        color: #1A202C !important;
+    }
+    li[role="option"] * {
+        color: #1A202C !important;
+    }
+    li[role="option"]:hover, li[role="option"][aria-selected="true"] {
+        background-color: #FFE3C2 !important;
+        color: #1A202C !important;
     }
 
     /* Encabezado Principal */
     .main-header {
         background: linear-gradient(135deg, #FF6B6B 0%, #FFBE0B 50%, #00F5D4 100%);
-        padding: 26px 16px;
+        padding: 22px 16px;
         border-radius: 20px;
-        color: white !important;
         text-align: center;
-        margin-bottom: 18px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        position: relative;
-        overflow: hidden;
-    }
-    .main-header * {
-        color: white !important;
+        margin-bottom: 16px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
     }
     .main-header h1 {
         color: white !important;
-        font-size: 2.4rem;
+        font-size: 2.2rem;
         font-weight: 900;
         margin: 0;
         letter-spacing: 1.5px;
-        text-shadow: 2px 3px 6px rgba(0,0,0,0.25);
+        text-shadow: 2px 2px 5px rgba(0,0,0,0.25);
     }
     .main-header p {
         color: white !important;
-        font-size: 1.05rem;
-        margin-top: 6px;
+        font-size: 1rem;
+        margin-top: 5px;
         margin-bottom: 0;
         font-weight: 600;
     }
     
     /* Banner de Cuenta Regresiva */
     .countdown-card {
-        background: linear-gradient(90deg, #FFF3E2 0%, #FFECD2 100%);
+        background: #FFF3E2;
         border-left: 6px solid #FF6B6B;
-        padding: 16px 20px;
+        padding: 14px 18px;
         border-radius: 12px;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .countdown-card * {
-        color: #1A202C;
+        color: #1A202C !important;
     }
     .countdown-days {
-        font-size: 2rem;
+        font-size: 1.8rem;
         font-weight: 900;
-        color: #FF6B6B !important;
+        color: #E63946 !important;
         line-height: 1;
     }
     .countdown-days small {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 700;
         display: block;
         color: #E63946 !important;
@@ -144,16 +167,16 @@ st.markdown("""
     
     /* Salón de la Gloria */
     .hall-of-fame-card {
-        background: linear-gradient(120deg, #FFF9E6 0%, #FFE8B8 50%, #FFF3CC 100%);
+        background: #FFF9E6;
         border: 2px solid #F39C12;
         border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 22px;
-        box-shadow: 0 6px 16px rgba(243, 156, 18, 0.22);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(243, 156, 18, 0.18);
     }
     .hall-of-fame-card h3 {
         color: #B7791F !important;
-        margin: 0 0 8px 0;
+        margin: 0 0 6px 0;
     }
     .hall-of-fame-card p {
         color: #744210 !important;
@@ -162,170 +185,130 @@ st.markdown("""
     }
 
     /* =========================================================
-       BOTONES DE NAVEGACIÓN PRINCIPAL EN 3D (TEXTO SIEMPRE VISIBLE)
+       BOTONES DEL MENÚ DE NAVEGACIÓN (3D, VISIBLES, 2x2 EN MÓVIL)
        ========================================================= */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 12px !important;
-        padding: 8px 4px 22px 4px !important;
-        border-bottom: none !important;
-        display: flex !important;
-        flex-wrap: wrap !important;
-        justify-content: center !important;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: linear-gradient(180deg, #FFFFFF 0%, #FFF0D4 100%) !important;
-        border: 2px solid #F6AD55 !important;
-        border-bottom: 4px solid #DD6B20 !important;
-        border-radius: 35px !important;
-        padding: 12px 22px !important;
-        box-shadow: 0 6px 0 #DD6B20, 0 8px 14px rgba(221, 107, 32, 0.25) !important;
-        transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        cursor: pointer !important;
-        white-space: nowrap !important;
-        position: relative !important;
-        top: 0px !important;
-    }
-    
-    /* Forzar color oscuro en TODOS los textos e iconos de pestañas inactivas */
-    .stTabs [data-baseweb="tab"] * {
-        color: #1A202C !important;
-        font-weight: 800 !important;
-        font-size: 0.95rem !important;
-    }
-    
-    .stTabs [data-baseweb="tab"]:hover {
-        background: linear-gradient(180deg, #FFF9F0 0%, #FFE2B8 100%) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 0 #DD6B20, 0 12px 18px rgba(221, 107, 32, 0.3) !important;
-    }
-    
-    .stTabs [data-baseweb="tab"]:active {
-        top: 5px !important;
-        transform: translateY(5px) !important;
-        box-shadow: 0 1px 0 #DD6B20, inset 0 2px 4px rgba(0,0,0,0.15) !important;
-        border-bottom: 2px solid #DD6B20 !important;
-    }
-    
-    /* Pestaña activa (fondo coral + texto blanco nítido) */
-    .stTabs [aria-selected="true"] {
+    .nav-btn-active button {
         background: linear-gradient(180deg, #FF6B6B 0%, #EE5253 100%) !important;
         border: 2px solid #C53030 !important;
         border-bottom: 4px solid #9B2C2C !important;
-        box-shadow: 0 6px 0 #9B2C2C, 0 10px 20px rgba(238, 82, 83, 0.4) !important;
-        transform: scale(1.02) !important;
-    }
-    .stTabs [aria-selected="true"] * {
         color: #FFFFFF !important;
         font-weight: 800 !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+        font-size: 0.95rem !important;
+        border-radius: 20px !important;
+        box-shadow: 0 4px 0 #9B2C2C, 0 6px 12px rgba(238, 82, 83, 0.35) !important;
+        padding: 12px 10px !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+    }
+    .nav-btn-inactive button {
+        background: linear-gradient(180deg, #FFFFFF 0%, #FFF0D4 100%) !important;
+        border: 2px solid #F6AD55 !important;
+        border-bottom: 4px solid #DD6B20 !important;
+        color: #1A202C !important;
+        font-weight: 800 !important;
+        font-size: 0.95rem !important;
+        border-radius: 20px !important;
+        box-shadow: 0 4px 0 #DD6B20, 0 6px 10px rgba(221, 107, 32, 0.15) !important;
+        padding: 12px 10px !important;
+    }
+    .nav-btn-inactive button:hover {
+        background: #FFE2B8 !important;
+        transform: translateY(-2px);
+    }
+    .nav-btn-active button:active, .nav-btn-inactive button:active {
+        transform: translateY(3px) !important;
+        box-shadow: 0 1px 0 #DD6B20 !important;
+    }
+
+    /* Botones de acción estándar (3D Naranja/Pastel) */
+    .stButton>button {
+        background: linear-gradient(180deg, #FFF6EC 0%, #FFE5CE 100%) !important;
+        border: 2px solid #F6AD55 !important;
+        border-bottom: 3px solid #DD6B20 !important;
+        color: #1A202C !important;
+        font-weight: 800 !important;
+        border-radius: 22px !important;
+        box-shadow: 0 3px 0 #DD6B20, 0 4px 8px rgba(0,0,0,0.06) !important;
+        padding: 8px 16px !important;
+    }
+    .stButton>button:hover {
+        background: #FFD9B8 !important;
+        color: #1A202C !important;
+    }
+    .stButton>button:active {
+        transform: translateY(2px) !important;
+        box-shadow: 0 1px 0 #DD6B20 !important;
     }
     
-    .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] {
-        display: none !important;
+    /* Botones primarios (formularios / confirmar) */
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"], button[kind="primary"] {
+        background: linear-gradient(180deg, #FF6B6B 0%, #EE5253 100%) !important;
+        border: 2px solid #C53030 !important;
+        border-bottom: 4px solid #9B2C2C !important;
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
+        border-radius: 25px !important;
+        box-shadow: 0 4px 0 #9B2C2C !important;
     }
 
     /* =========================================================
-       TARJETAS DE MÉTRICAS CON MÁXIMO CONTRASTE
+       TARJETAS DE MÉTRICAS (2x2) CON MÁXIMO CONTRASTE
        ========================================================= */
     div[data-testid="stMetric"] {
         background: #FFFFFF !important;
-        padding: 16px !important;
-        border-radius: 16px !important;
-        border: 1.5px solid #FFD166 !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+        padding: 12px 14px !important;
+        border-radius: 14px !important;
+        border: 2px solid #FFD166 !important;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.04) !important;
+        text-align: center !important;
     }
     div[data-testid="stMetricLabel"] * {
-        font-size: 0.92rem !important;
+        font-size: 0.88rem !important;
         font-weight: 700 !important;
         color: #4A5568 !important;
     }
     div[data-testid="stMetricValue"] * {
-        font-size: 1.75rem !important;
+        font-size: 1.55rem !important;
         font-weight: 900 !important;
         color: #1A202C !important;
-    }
-
-    /* =========================================================
-       INPUTS, SELECTS Y FORMULARIOS CLAROS
-       ========================================================= */
-    label, label * {
-        color: #1A202C !important;
-        font-weight: 700 !important;
-        font-size: 0.95rem !important;
-    }
-    .stSelectbox > div[data-baseweb="select"] > div,
-    .stTextInput > div > div,
-    .stNumberInput > div > div {
-        background-color: #FFFFFF !important;
-        border: 1.5px solid #CBD5E0 !important;
-        border-radius: 10px !important;
-    }
-    .stSelectbox [data-baseweb="select"] * {
-        color: #1A202C !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Botones de acción 3D en la interfaz */
-    .stButton>button, .stDownloadButton>button {
-        border-radius: 28px !important;
-        font-weight: 700 !important;
-        border-bottom: 3px solid rgba(0,0,0,0.15) !important;
-        box-shadow: 0 4px 0 rgba(0,0,0,0.10), 0 6px 12px rgba(0,0,0,0.06) !important;
-        transition: all 0.12s ease !important;
-    }
-    .stButton>button:hover, .stDownloadButton>button:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 5px 0 rgba(0,0,0,0.10), 0 8px 16px rgba(0,0,0,0.1) !important;
-    }
-    .stButton>button:active, .stDownloadButton>button:active {
-        transform: translateY(3px) !important;
-        box-shadow: 0 1px 0 rgba(0,0,0,0.12) !important;
     }
 
     /* Tarjeta vacía de bienvenida */
     .welcome-empty {
         text-align: center;
-        padding: 40px 20px;
+        padding: 30px 20px;
         background: #FFFFFF;
         border-radius: 16px;
         border: 2px dashed #FFD166;
-        margin-top: 15px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        margin-top: 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.03);
     }
-    .welcome-empty .emoji-big { font-size: 3.5rem; }
-    .welcome-empty h3 { color: #FF6B6B !important; margin-top: 12px; }
-    .welcome-empty p { color: #4A5568 !important; max-width: 520px; margin: 8px auto 0; font-size: 0.95rem; font-weight: 500; }
+    .welcome-empty .emoji-big { font-size: 3rem; }
+    .welcome-empty h3 { color: #FF6B6B !important; margin-top: 10px; }
+    .welcome-empty p { color: #4A5568 !important; max-width: 500px; margin: 6px auto 0; font-size: 0.92rem; font-weight: 600; }
 
     /* Pie de página */
     .footer-rio {
         text-align: center;
-        padding: 20px 10px;
-        margin-top: 30px;
+        padding: 18px 10px;
+        margin-top: 25px;
         color: #718096 !important;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 600;
         border-top: 1px solid #E2E8F0;
     }
 
     /* Adaptación Responsive para Móviles */
     @media (max-width: 768px) {
-        .main-header { padding: 16px 12px; }
-        .main-header h1 { font-size: 1.5rem !important; }
-        .main-header p { font-size: 0.85rem !important; }
-        .stTabs [data-baseweb="tab"] {
-            padding: 8px 14px !important;
-            font-size: 0.82rem !important;
-            border-radius: 25px !important;
-            box-shadow: 0 4px 0 #DD6B20, 0 6px 10px rgba(221, 107, 32, 0.2) !important;
-        }
-        div[data-testid="stMetricValue"] * { font-size: 1.35rem !important; }
+        .main-header { padding: 14px 10px; }
+        .main-header h1 { font-size: 1.4rem !important; }
+        .main-header p { font-size: 0.82rem !important; }
+        div[data-testid="stMetricValue"] * { font-size: 1.3rem !important; }
         .countdown-card {
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             flex-direction: column;
             text-align: center;
         }
-        .countdown-days { font-size: 1.5rem; }
+        .countdown-days { font-size: 1.4rem; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -337,7 +320,7 @@ is_closed, days_left, deadline_str = dm.get_competition_status()
 st.markdown("""
 <div class="main-header">
     <h1>🌴 OPERACIÓN BIKINI 👙</h1>
-    <p>🏖️ Edición Río de Janeiro • ¡Rumbo al verano en forma, saludables y fabulosas! 🍹☀️</p>
+    <p>🏖️ Edición Río de Janeiro • ¡Rumbo al verano en forma y fabulosas! 🍹☀️</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -362,9 +345,9 @@ hall_of_fame = dm.get_hall_of_fame()
 if hall_of_fame:
     st.markdown("""
     <div class="hall-of-fame-card">
-        <h3 style="margin: 0 0 10px 0; color: #B7791F;">👑 SALÓN DE LA GLORIA: ¡CHICAS BIKINI DE ORO! 👑</h3>
-        <p style="margin: 0; font-size: 0.95rem; color: #744210;">
-            ¡Un aplauso gigante para las participantes que ya alcanzaron o superaron su peso objetivo! 👏🎉🍾
+        <h3 style="margin: 0 0 6px 0; color: #B7791F;">👑 SALÓN DE LA GLORIA: ¡CHICAS BIKINI DE ORO! 👑</h3>
+        <p style="margin: 0; font-size: 0.92rem; color: #744210;">
+            ¡Un aplauso gigante para las participantes que ya alcanzaron su peso objetivo! 👏🎉🍾
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -375,30 +358,74 @@ if hall_of_fame:
             st.success(f"🏆 **{champ['nickname']}**\n\n🎯 Meta: {champ['target_weight']} kg\n\n⚖️ Actual: **{champ['current_weight']} kg**\n\n📉 Bajó: **{champ['total_lost']} kg** 🎉")
 
 
-# --- MENÚ DE PESTAÑAS ESTILO BOTONES 3D ---
-tab_mi_progreso, tab_general, tab_nuevo_usuario, tab_historial, tab_datos = st.tabs([
-    "🏖️ Mi Progreso & Cargar Peso",
-    "📊 Competencia General",
-    "➕ Nueva Participante",
-    "✏️ Historial & Corrección",
-    "💾 Copia de Seguridad"
-])
+# =========================================================
+# MENÚ PRINCIPAL TIPO BOTONES (DISPUESTO EN GRILLA 2x2 PARA CELULAR)
+# =========================================================
+if "active_nav_tab" not in st.session_state:
+    st.session_state.active_nav_tab = "🏖️ Mi Progreso"
+
+# Fila 1 del Menú (2 botones)
+nav_r1_c1, nav_r1_c2 = st.columns(2)
+with nav_r1_c1:
+    btn_class1 = "nav-btn-active" if st.session_state.active_nav_tab == "🏖️ Mi Progreso" else "nav-btn-inactive"
+    st.markdown(f'<div class="{btn_class1}">', unsafe_allow_html=True)
+    if st.button("🏖️ Mi Progreso", key="btn_nav_progreso", use_container_width=True):
+        st.session_state.active_nav_tab = "🏖️ Mi Progreso"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with nav_r1_c2:
+    btn_class2 = "nav-btn-active" if st.session_state.active_nav_tab == "📊 Competencia" else "nav-btn-inactive"
+    st.markdown(f'<div class="{btn_class2}">', unsafe_allow_html=True)
+    if st.button("📊 Competencia", key="btn_nav_competencia", use_container_width=True):
+        st.session_state.active_nav_tab = "📊 Competencia"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Fila 2 del Menú (2 botones)
+nav_r2_c1, nav_r2_c2 = st.columns(2)
+with nav_r2_c1:
+    btn_class3 = "nav-btn-active" if st.session_state.active_nav_tab == "➕ Nueva Participante" else "nav-btn-inactive"
+    st.markdown(f'<div class="{btn_class3}">', unsafe_allow_html=True)
+    if st.button("➕ Nueva Amiga", key="btn_nav_nueva", use_container_width=True):
+        st.session_state.active_nav_tab = "➕ Nueva Participante"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with nav_r2_c2:
+    btn_class4 = "nav-btn-active" if st.session_state.active_nav_tab == "✏️ Historial" else "nav-btn-inactive"
+    st.markdown(f'<div class="{btn_class4}">', unsafe_allow_html=True)
+    if st.button("✏️ Historial", key="btn_nav_historial", use_container_width=True):
+        st.session_state.active_nav_tab = "✏️ Historial"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Fila 3 del Menú (1 botón centrado / ancho)
+nav_r3_c1, nav_r3_c2, nav_r3_c3 = st.columns([1, 2, 1])
+with nav_r3_c2:
+    btn_class5 = "nav-btn-active" if st.session_state.active_nav_tab == "💾 Copia de Seguridad" else "nav-btn-inactive"
+    st.markdown(f'<div class="{btn_class5}">', unsafe_allow_html=True)
+    if st.button("💾 Copia de Seguridad", key="btn_nav_backup", use_container_width=True):
+        st.session_state.active_nav_tab = "💾 Copia de Seguridad"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
 all_users = dm.get_all_users()
 
 
 # =========================================================
-# PESTAÑA 1: MI PROGRESO & CARGAR PESO
+# VISTA 1: MI PROGRESO & CARGAR PESO
 # =========================================================
-with tab_mi_progreso:
+if st.session_state.active_nav_tab == "🏖️ Mi Progreso":
     if not all_users:
-        st.info("👋 ¡Aún no hay participantes registradas! Ve a la pestaña **➕ Nueva Participante** para comenzar.")
+        st.info("👋 ¡Aún no hay participantes registradas! Toca arriba en **➕ Nueva Amiga** para comenzar.")
     else:
-        # Manejo de estado de selección de apodo
         if "selected_nickname" not in st.session_state:
             st.session_state.selected_nickname = None
 
-        # Contenedor limpio y nativo para el selector de apodo
+        # Contenedor limpio para el selector de apodo
         with st.container(border=True):
             def clear_user_selection_callback():
                 st.session_state.selected_nickname = None
@@ -408,11 +435,10 @@ with tab_mi_progreso:
             with col_sel_text:
                 st.markdown("### 👤 Selecciona tu Apodo:")
             with col_sel_btn:
-                st.button("❌ Borrar Selección", key="btn_clear_user_selection", on_click=clear_user_selection_callback, use_container_width=True)
+                st.button("❌ Borrar", key="btn_clear_user_selection", on_click=clear_user_selection_callback, use_container_width=True)
 
             options = ["-- Elige tu Apodo en la lista --"] + all_users
             
-            # Inicializar valor si no existe o si el apodo guardado ya no está en la lista
             if "select_user_progress_dropdown" not in st.session_state or st.session_state["select_user_progress_dropdown"] not in options:
                 if st.session_state.selected_nickname and st.session_state.selected_nickname in all_users:
                     st.session_state["select_user_progress_dropdown"] = st.session_state.selected_nickname
@@ -431,14 +457,14 @@ with tab_mi_progreso:
             else:
                 st.session_state.selected_nickname = None
 
-        # Si NO hay apodo seleccionado, mostramos tarjeta de bienvenida
+        # Si NO hay apodo seleccionado
         if not st.session_state.selected_nickname:
             st.markdown("""
             <div class="welcome-empty">
                 <span class="emoji-big">🌴👙</span>
                 <h3>¡Hola! Elige tu apodo arriba para ver tu progreso</h3>
                 <p>
-                    Selecciona tu nombre en el menú superior para ver tus kilos bajados,
+                    Selecciona tu nombre en la lista para ver tus kilos bajados,
                     registrar tu pesaje de hoy y visualizar tu gráfico hacia el objetivo.
                 </p>
             </div>
@@ -449,7 +475,9 @@ with tab_mi_progreso:
             
             if stats:
                 st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-                col_form, col_metrics = st.columns([1, 2])
+                
+                # Formulario de Carga y Estadísticas (2x2 cuadrado)
+                col_form, col_metrics = st.columns([1, 1.2])
                 
                 with col_form:
                     st.subheader("⚖️ Cargar Peso de Hoy")
@@ -476,7 +504,7 @@ with tab_mi_progreso:
                                 if success:
                                     if new_weight <= stats["target_weight"]:
                                         st.balloons()
-                                        st.success(f"🎉🎉 ¡FELICITACIONES {selected_user.upper()}! ¡ALCANZASTE TU PESO OBJETIVO DE {stats['target_weight']} kg! 🍾👙☀️")
+                                        st.success(f"🎉🎉 ¡FELICITACIONES {selected_user.upper()}! ¡ALCANZASTE TU META DE {stats['target_weight']} kg! 🍾👙☀️")
                                     else:
                                         st.success(msg)
                                     st.rerun()
@@ -484,16 +512,16 @@ with tab_mi_progreso:
                                     st.error(msg)
                                     
                 with col_metrics:
-                    st.subheader(f"📊 Estadísticas de {selected_user}")
+                    st.subheader(f"📊 Métricas de {selected_user}")
                     
-                    m1, m2, m3, m4 = st.columns(4)
-                    
-                    with m1:
+                    # Cuadrado 2x2 de métricas para celular y PC
+                    m_r1_c1, m_r1_c2 = st.columns(2)
+                    with m_r1_c1:
                         st.metric(
                             label="Peso Actual",
                             value=f"{stats['current_weight']} kg"
                         )
-                    with m2:
+                    with m_r1_c2:
                         delta_val = stats['last_delta']
                         st.metric(
                             label="Último Cambio",
@@ -501,34 +529,32 @@ with tab_mi_progreso:
                             delta=f"{delta_val:+.1f} kg" if len(stats["history"]) > 1 else "Inicio",
                             delta_color="inverse"
                         )
-                    with m3:
+                        
+                    m_r2_c1, m_r2_c2 = st.columns(2)
+                    with m_r2_c1:
                         st.metric(
                             label="Total Bajado",
                             value=f"{stats['total_lost']} kg",
                             delta=f"{-stats['total_delta']:+.1f} kg",
                             delta_color="normal"
                         )
-                    with m4:
+                    with m_r2_c2:
                         if stats["goal_achieved"]:
-                            st.metric(
-                                label="Meta",
-                                value="¡Cumplida! 👑",
-                                delta="Superada 🌟"
-                            )
+                            st.metric(label="Meta", value="¡Cumplida! 👑", delta="Superada 🌟")
                         else:
                             st.metric(
-                                label="Faltan para la Meta",
+                                label="Faltan para Meta",
                                 value=f"{stats['remaining_to_goal']} kg",
-                                delta=f"Objetivo: {stats['target_weight']} kg",
+                                delta=f"Meta: {stats['target_weight']} kg",
                                 delta_color="off"
                             )
                     
                     # Barra de progreso motivacional
                     prog_pct = min(max(stats["progress_pct"], 0.0), 100.0)
-                    st.markdown(f"**Progreso hacia el objetivo ({stats['target_weight']} kg): {stats['progress_pct']}%**")
+                    st.markdown(f"**Progreso hacia la meta ({stats['target_weight']} kg): {stats['progress_pct']}%**")
                     st.progress(prog_pct / 100.0)
                 
-                # Gráfico de evolución individual con fondo blanco explícito y etiquetas oscuras
+                # Gráfico individual sin zoom accidental (fijo para móvil)
                 st.markdown("---")
                 st.subheader(f"📈 Evolución de Peso — {selected_user}")
                 
@@ -538,7 +564,7 @@ with tab_mi_progreso:
                 
                 fig_user = go.Figure()
                 
-                # Área degradada debajo de la curva
+                # Área degradada
                 fig_user.add_trace(go.Scatter(
                     x=df_user["Fecha_dt"],
                     y=df_user["weight"],
@@ -547,7 +573,7 @@ with tab_mi_progreso:
                     showlegend=False,
                     hoverinfo='skip',
                     fill='tozeroy',
-                    fillcolor='rgba(255, 107, 107, 0.12)'
+                    fillcolor='rgba(255, 107, 107, 0.10)'
                 ))
                 
                 # Línea de peso real del usuario
@@ -556,12 +582,12 @@ with tab_mi_progreso:
                     y=df_user["weight"],
                     mode='lines+markers',
                     name=f'{selected_user}',
-                    line=dict(color=COLORS["coral"], width=3.5, shape='spline'),
-                    marker=dict(size=10, color=COLORS["coral_dark"], line=dict(color='white', width=2)),
+                    line=dict(color="#FF6B6B", width=3.5, shape='spline'),
+                    marker=dict(size=10, color="#E63946", line=dict(color='white', width=2)),
                     hovertemplate="<b>%{x|%d/%m/%Y}</b><br>Peso: <b>%{y:.1f} kg</b><extra></extra>"
                 ))
                 
-                # Línea del peso inicial (referencia)
+                # Línea del peso inicial
                 fig_user.add_hline(
                     y=stats["start_weight"],
                     line_dash="dot",
@@ -576,11 +602,11 @@ with tab_mi_progreso:
                 fig_user.add_hline(
                     y=stats["target_weight"],
                     line_dash="dash",
-                    line_color=COLORS["teal"],
+                    line_color="#06D6A0",
                     line_width=3,
                     annotation_text=f"🎯 Meta: {stats['target_weight']} kg",
                     annotation_position="bottom right",
-                    annotation_font=dict(size=12, color=COLORS["teal_dark"], family="Poppins")
+                    annotation_font=dict(size=12, color="#058C68", family="Poppins")
                 )
                 
                 # Ajuste de límites del eje Y
@@ -594,15 +620,18 @@ with tab_mi_progreso:
                     yaxis=dict(
                         range=[y_min, y_max],
                         gridcolor='#E2E8F0',
+                        fixedrange=True,  # Desactiva zoom accidental en móvil
                         tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                         title_font=dict(color='#1A202C', size=13, family='Poppins')
                     ),
                     xaxis=dict(
                         gridcolor='#E2E8F0',
+                        fixedrange=True,  # Desactiva zoom accidental en móvil
                         tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                         title_font=dict(color='#1A202C', size=13, family='Poppins')
                     ),
                     hovermode="x unified",
+                    dragmode=False,       # Desactiva arrastrar/pan en móvil
                     hoverlabel=dict(
                         bgcolor="#FFFFFF",
                         font_color="#1A202C",
@@ -611,8 +640,8 @@ with tab_mi_progreso:
                         bordercolor="#CBD5E0"
                     ),
                     template="plotly_white",
-                    height=420,
-                    margin=dict(l=20, r=20, t=30, b=20),
+                    height=400,
+                    margin=dict(l=10, r=10, t=30, b=20),
                     legend=dict(
                         orientation="h",
                         yanchor="bottom",
@@ -627,29 +656,30 @@ with tab_mi_progreso:
                 )
                 fig_user.update_xaxes(dtick="D1", tickformat="%d/%m")
                 
-                st.plotly_chart(fig_user, use_container_width=True)
+                st.plotly_chart(
+                    fig_user,
+                    use_container_width=True,
+                    config={'displayModeBar': False, 'scrollZoom': False, 'doubleClick': False}
+                )
 
 
 # =========================================================
-# PESTAÑA 2: COMPETENCIA GENERAL
+# VISTA 2: COMPETENCIA GENERAL
 # =========================================================
-with tab_general:
+elif st.session_state.active_nav_tab == "📊 Competencia":
     st.subheader("🏖️ Gráfico Comparativo del Grupo")
     df_all = dm.get_all_weights_dataframe()
     
     if df_all.empty:
         st.info("Aún no hay pesajes cargados para graficar.")
     else:
-        # Inicialización de estado de participantes seleccionadas
         if "multiselect_group_users_widget" not in st.session_state:
             st.session_state["multiselect_group_users_widget"] = all_users.copy()
         else:
-            # Sincronizar: solo contener usuarias que existen
             st.session_state["multiselect_group_users_widget"] = [
                 u for u in st.session_state["multiselect_group_users_widget"] if u in all_users
             ]
 
-        # Callbacks de selección rápida
         def select_all_group_callback():
             st.session_state["multiselect_group_users_widget"] = all_users.copy()
 
@@ -658,19 +688,19 @@ with tab_general:
 
         col_btn1, col_btn2, col_radio = st.columns([1, 1, 2])
         with col_btn1:
-            st.button("🔘 Seleccionar Todos", key="btn_select_all_group_users", on_click=select_all_group_callback, use_container_width=True)
+            st.button("🔘 Todos", key="btn_select_all_group_users", on_click=select_all_group_callback, use_container_width=True)
         with col_btn2:
-            st.button("❌ Borrar Selección", key="btn_clear_all_group_users", on_click=clear_all_group_callback, use_container_width=True)
+            st.button("❌ Ninguno", key="btn_clear_all_group_users", on_click=clear_all_group_callback, use_container_width=True)
         with col_radio:
             view_metric = st.radio(
-                "Métrica a graficar:",
+                "Métrica:",
                 options=["Peso Actual (kg)", "Kilos Bajados (kg)"],
                 horizontal=True,
                 key="radio_group_metric_choice"
             )
             
         selected_participants = st.multiselect(
-            "Participantes visibles en el gráfico:",
+            "Participantes visibles:",
             options=all_users,
             key="multiselect_group_users_widget"
         )
@@ -686,7 +716,7 @@ with tab_general:
                 y=y_col,
                 color="Participante",
                 markers=True,
-                title=f"Evolución Diaria del Grupo — {view_metric}",
+                title=f"Evolución Diaria — {view_metric}",
                 labels={"Fecha_dt": "Fecha", y_col: view_metric},
                 color_discrete_sequence=TROPICAL_PALETTE
             )
@@ -701,6 +731,7 @@ with tab_general:
                 xaxis_title="Fecha",
                 yaxis_title=view_metric,
                 hovermode="x unified",
+                dragmode=False,       # Desactiva arrastrar/pan en móvil
                 hoverlabel=dict(
                     bgcolor="#FFFFFF",
                     font_color="#1A202C",
@@ -709,34 +740,40 @@ with tab_general:
                     bordercolor="#CBD5E0"
                 ),
                 template="plotly_white",
-                height=500,
-                margin=dict(l=20, r=20, t=50, b=20),
+                height=480,
+                margin=dict(l=10, r=10, t=40, b=20),
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
                     y=1.02,
                     xanchor="center",
                     x=0.5,
-                    font=dict(color="#1A202C", size=12, family="Poppins")
+                    font=dict(color="#1A202C", size=11, family="Poppins")
                 ),
                 paper_bgcolor='#FFFFFF',
                 plot_bgcolor='#FFFFFF',
                 yaxis=dict(
                     gridcolor='#E2E8F0',
+                    fixedrange=True,  # Desactiva zoom accidental en móvil
                     tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                     title_font=dict(color='#1A202C', size=13, family='Poppins')
                 ),
                 xaxis=dict(
                     gridcolor='#E2E8F0',
+                    fixedrange=True,  # Desactiva zoom accidental en móvil
                     tickfont=dict(color='#1A202C', size=11, family='Poppins'),
                     title_font=dict(color='#1A202C', size=13, family='Poppins')
                 ),
                 font=dict(color='#1A202C', family='Poppins'),
-                title=dict(font=dict(color='#1A202C', size=15, family='Poppins'))
+                title=dict(font=dict(color='#1A202C', size=14, family='Poppins'))
             )
             fig_group.update_xaxes(dtick="D1", tickformat="%d/%m")
             
-            st.plotly_chart(fig_group, use_container_width=True)
+            st.plotly_chart(
+                fig_group,
+                use_container_width=True,
+                config={'displayModeBar': False, 'scrollZoom': False, 'doubleClick': False}
+            )
         else:
             st.warning("Selecciona al menos una participante para visualizar el gráfico.")
             
@@ -748,27 +785,26 @@ with tab_general:
         if all_stats:
             all_stats.sort(key=lambda x: (x["progress_pct"], x["total_lost"]), reverse=True)
             
-            # Renderizar ranking con tarjetas estilizadas
             for rank, s in enumerate(all_stats, 1):
                 if rank == 1:
                     medal = "🥇"
-                    bg = "linear-gradient(90deg, #FFF9E6, #FFE8B8)"
+                    bg = "#FFF9E6"
                     border_col = "#F6AD55"
                 elif rank == 2:
                     medal = "🥈"
-                    bg = "linear-gradient(90deg, #F7FAFC, #EDF2F7)"
+                    bg = "#F7FAFC"
                     border_col = "#A0AEC0"
                 elif rank == 3:
                     medal = "🥉"
-                    bg = "linear-gradient(90deg, #FFFAF0, #FEEBC8)"
+                    bg = "#FFFAF0"
                     border_col = "#DD6B20"
                 else:
                     medal = f"#{rank}"
-                    bg = "#FFFDF9"
+                    bg = "#FFFFFF"
                     border_col = "#E2E8F0"
                     
                 prog_bar_width = min(max(s['progress_pct'], 0), 100)
-                prog_color = COLORS["teal"] if s["goal_achieved"] else COLORS["coral"]
+                prog_color = "#06D6A0" if s["goal_achieved"] else "#FF6B6B"
                 status_text = "👑 ¡Meta Lograda!" if s["goal_achieved"] else f"Faltan {s['remaining_to_goal']} kg"
                 
                 st.markdown(f"""
@@ -776,29 +812,29 @@ with tab_general:
                     background: {bg};
                     border-left: 5px solid {border_col};
                     border-radius: 12px;
-                    padding: 14px 18px;
-                    margin-bottom: 10px;
+                    padding: 12px 14px;
+                    margin-bottom: 8px;
                     display: flex;
                     flex-wrap: wrap;
                     align-items: center;
-                    gap: 16px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                    gap: 12px;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
                 ">
-                    <div style="font-size: 1.8rem; min-width: 45px; text-align: center; color: #1A202C;">{medal}</div>
-                    <div style="flex: 1; min-width: 120px;">
-                        <div style="font-weight: 800; font-size: 1.1rem; color: #1A202C;">{s['nickname']}</div>
-                        <div style="font-size: 0.82rem; color: #4A5568;">{s['start_weight']} → {s['current_weight']} kg (meta: {s['target_weight']})</div>
+                    <div style="font-size: 1.6rem; min-width: 40px; text-align: center; color: #1A202C;">{medal}</div>
+                    <div style="flex: 1; min-width: 110px;">
+                        <div style="font-weight: 800; font-size: 1.05rem; color: #1A202C;">{s['nickname']}</div>
+                        <div style="font-size: 0.8rem; color: #4A5568;">{s['start_weight']} → {s['current_weight']} kg (meta: {s['target_weight']})</div>
                     </div>
-                    <div style="flex: 2; min-width: 200px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #1A202C; margin-bottom: 4px;">
+                    <div style="flex: 2; min-width: 180px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #1A202C; margin-bottom: 4px;">
                             <span>Bajó <b style="color:#1A202C;">{s['total_lost']} kg</b></span>
-                            <span><b style="color:#1A202C;">{s['progress_pct']}%</b> del objetivo</span>
+                            <span><b style="color:#1A202C;">{s['progress_pct']}%</b></span>
                         </div>
-                        <div style="background: #E2E8F0; border-radius: 10px; height: 10px; overflow: hidden;">
-                            <div style="background: {prog_color}; width: {prog_bar_width}%; height: 100%; border-radius: 10px; transition: width 0.5s;"></div>
+                        <div style="background: #E2E8F0; border-radius: 10px; height: 8px; overflow: hidden;">
+                            <div style="background: {prog_color}; width: {prog_bar_width}%; height: 100%; border-radius: 10px;"></div>
                         </div>
                     </div>
-                    <div style="min-width: 130px; text-align: right; font-size: 0.85rem; font-weight: 700; color: {'#058C68' if s['goal_achieved'] else '#4A5568'};">
+                    <div style="min-width: 120px; text-align: right; font-size: 0.82rem; font-weight: 700; color: {'#058C68' if s['goal_achieved'] else '#4A5568'};">
                         {status_text}
                     </div>
                 </div>
@@ -806,11 +842,11 @@ with tab_general:
 
 
 # =========================================================
-# PESTAÑA 3: NUEVA PARTICIPANTE
+# VISTA 3: NUEVA PARTICIPANTE
 # =========================================================
-with tab_nuevo_usuario:
+elif st.session_state.active_nav_tab == "➕ Nueva Participante":
     st.subheader("➕ Registrar Nueva Participante")
-    st.markdown("Suma una amiga al desafío de **Operación Bikini**. El peso inicial quedará registrado automáticamente como su primer pesaje de partida.")
+    st.markdown("Suma una amiga al desafío de **Operación Bikini**. Su peso inicial quedará registrado como el punto de partida.")
     
     with st.form("form_new_user", clear_on_submit=True):
         col_n1, col_n2, col_n3 = st.columns(3)
@@ -832,12 +868,12 @@ with tab_nuevo_usuario:
                     clean_nick = new_nickname.strip()
                     st.session_state.selected_nickname = clean_nick
                     st.session_state["select_user_progress_dropdown"] = clean_nick
-                    # Agregar al multiselect de competencia general
                     if "multiselect_group_users_widget" in st.session_state:
                         current_list = list(st.session_state["multiselect_group_users_widget"])
                         if clean_nick not in current_list:
                             current_list.append(clean_nick)
                             st.session_state["multiselect_group_users_widget"] = current_list
+                    st.session_state.active_nav_tab = "🏖️ Mi Progreso"
                     st.success(msg)
                     st.rerun()
                 else:
@@ -845,16 +881,15 @@ with tab_nuevo_usuario:
 
 
 # =========================================================
-# PESTAÑA 4: HISTORIAL & CORRECCIÓN
+# VISTA 4: HISTORIAL & CORRECCIÓN
 # =========================================================
-with tab_historial:
-    st.subheader("✏️ Modificar o Eliminar Pesajes Erróneos")
-    st.caption("Si cargaste mal un número o quieres corregir un pesaje anterior, puedes gestionarlo aquí de manera sencilla.")
+elif st.session_state.active_nav_tab == "✏️ Historial":
+    st.subheader("✏️ Modificar o Eliminar Pesajes")
+    st.caption("Si cargaste mal un número o quieres corregir un pesaje anterior, puedes gestionarlo aquí.")
     
     if not all_users:
         st.info("No hay participantes cargadas.")
     else:
-        # Asegurar que la participante en session_state siga existiendo
         if "select_user_to_edit_history" in st.session_state and st.session_state["select_user_to_edit_history"] not in all_users:
             st.session_state.pop("select_user_to_edit_history", None)
 
@@ -876,12 +911,10 @@ with tab_historial:
                 st.markdown("**Acciones de corrección:**")
                 dates_available = [item["date"] for item in history]
                 
-                # Validar que la fecha seleccionada exista
                 if "select_date_to_edit_history" in st.session_state and st.session_state["select_date_to_edit_history"] not in dates_available:
                     st.session_state.pop("select_date_to_edit_history", None)
 
                 selected_date = st.selectbox("Selecciona la fecha a modificar o eliminar:", options=dates_available, key="select_date_to_edit_history")
-                
                 current_val = next((item["weight"] for item in history if item["date"] == selected_date), 70.0)
                 
                 with st.form("form_edit_weight"):
@@ -905,7 +938,7 @@ with tab_historial:
                             st.error(msg)
                 
                 st.markdown("---")
-                if st.button(f"🗑️ Eliminar pesaje del {selected_date}", key=f"btn_delete_entry_{user_to_edit}_{selected_date}", type="secondary"):
+                if st.button(f"🗑️ Eliminar pesaje del {selected_date}", key=f"btn_delete_entry_{user_to_edit}_{selected_date}"):
                     succ, msg = dm.delete_weight_entry(user_to_edit, selected_date)
                     if succ:
                         st.session_state.pop("select_date_to_edit_history", None)
@@ -919,51 +952,44 @@ with tab_historial:
         # ZONA DE PELIGRO: Eliminar Participante Completa
         # --------------------------------------------------
         st.markdown("---")
-        st.markdown("### ⚠️ Zona de Peligro")
+        st.markdown("### ⚠️ Eliminar Participante")
         
-        # Inicializar estado de confirmación de borrado
         confirm_key = f"confirm_delete_user_{user_to_edit}"
         if confirm_key not in st.session_state:
             st.session_state[confirm_key] = False
 
         if not st.session_state[confirm_key]:
-            # Primer paso: botón inicial
             if st.button(
-                f"🗑️ Eliminar participante '{user_to_edit}' (borra todos sus datos)",
-                key=f"btn_delete_user_initial_{user_to_edit}",
-                type="secondary"
+                f"🗑️ Eliminar a '{user_to_edit}' y todos sus datos",
+                key=f"btn_delete_user_initial_{user_to_edit}"
             ):
                 st.session_state[confirm_key] = True
                 st.rerun()
         else:
-            # Segundo paso: panel de confirmación
             st.markdown(
                 f"""
-                <div style="background:#FFF5F5; border:2px solid #FC8181; border-radius:14px; padding:18px 20px; margin-top:8px;">
-                    <p style="color:#C53030 !important; font-weight:800; font-size:1.05rem; margin:0 0 8px 0;">
+                <div style="background:#FFF5F5; border:2px solid #FC8181; border-radius:14px; padding:16px 18px; margin-top:6px;">
+                    <p style="color:#C53030 !important; font-weight:800; font-size:1rem; margin:0 0 6px 0;">
                         🚨 ¿Estás segura de que querés eliminar a <em>'{user_to_edit}'</em>?
                     </p>
-                    <p style="color:#742A2A !important; font-size:0.9rem; margin:0;">
-                        Esta acción borrará <strong>todos sus pesajes e historial</strong> de forma permanente.
-                        No hay forma de deshacer esta operación.
+                    <p style="color:#742A2A !important; font-size:0.88rem; margin:0;">
+                        Esta acción borrará todos sus pesajes permanentemente.
                     </p>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
             col_confirm, col_cancel = st.columns(2)
             with col_confirm:
                 if st.button(
                     "✅ Sí, eliminar definitivamente",
                     key=f"btn_confirm_delete_user_{user_to_edit}",
-                    type="primary",
                     use_container_width=True
                 ):
                     succ, msg = dm.delete_user(user_to_edit)
                     if succ:
-                        # Limpiar todo el estado de session_state para evitar errores de selección inexistente
                         st.session_state.pop(confirm_key, None)
                         st.session_state.pop("select_user_to_edit_history", None)
                         st.session_state.pop("select_date_to_edit_history", None)
@@ -978,7 +1004,7 @@ with tab_historial:
                                 u for u in st.session_state["multiselect_group_users_widget"]
                                 if u != user_to_edit
                             ]
-                        st.success(f"✅ '{user_to_edit}' fue eliminada del sistema correctamente.")
+                        st.success(f"✅ '{user_to_edit}' fue eliminada correctamente.")
                         st.rerun()
                     else:
                         st.error(msg)
@@ -993,18 +1019,18 @@ with tab_historial:
 
 
 # =========================================================
-# PESTAÑA 5: COPIA DE SEGURIDAD & DATOS
+# VISTA 5: COPIA DE SEGURIDAD & DATOS
 # =========================================================
-with tab_datos:
+elif st.session_state.active_nav_tab == "💾 Copia de Seguridad":
     st.subheader("💾 Copia de Seguridad y Exportación")
-    st.markdown("Puedes descargar los datos en cualquier momento para tener un respaldo en tu computadora.")
+    st.markdown("Descarga los datos en cualquier momento para tener un respaldo en tu computadora o teléfono.")
     
     col_d1, col_d2 = st.columns(2)
     
     with col_d1:
         csv_data = dm.export_data_csv()
         st.download_button(
-            label="📥 Descargar todos los datos en CSV (Excel)",
+            label="📥 Descargar datos en CSV (Excel)",
             data=csv_data,
             file_name=f"operacion_bikini_pesajes_{date.today().strftime('%Y%m%d')}.csv",
             mime="text/csv",
@@ -1016,7 +1042,7 @@ with tab_datos:
         import json
         raw_json = json.dumps(dm.load_data(), indent=2, ensure_ascii=False)
         st.download_button(
-            label="📥 Descargar copia de seguridad en JSON",
+            label="📥 Descargar respaldo en JSON",
             data=raw_json,
             file_name=f"operacion_bikini_backup_{date.today().strftime('%Y%m%d')}.json",
             mime="application/json",
@@ -1026,7 +1052,7 @@ with tab_datos:
         
     st.markdown("---")
     st.subheader("🎲 Datos de Prueba para Demostración")
-    st.caption("Si quieres probar cómo se ve la app con participantes de ejemplo, haz clic en el siguiente botón:")
+    st.caption("Si quieres probar la app con participantes de ejemplo:")
     
     if st.button("🌴 Cargar Participantes de Demostración (Demo)", key="btn_load_demo_sample_data"):
         demo_users = {
@@ -1042,6 +1068,7 @@ with tab_datos:
         st.session_state.selected_nickname = "Valeria"
         st.session_state["select_user_progress_dropdown"] = "Valeria"
         st.session_state["multiselect_group_users_widget"] = list(demo_users.keys())
+        st.session_state.active_nav_tab = "🏖️ Mi Progreso"
         st.success("¡Datos de prueba cargados con éxito! 🏖️💃")
         st.rerun()
 
