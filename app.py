@@ -190,6 +190,49 @@ st.markdown("""
     }
 
     /* =========================================================
+       TABLAS MARKDOWN Y HTML — 100% BLANCAS Y CENTRADAS
+       ========================================================= */
+    table {
+        width: 100% !important;
+        background-color: #FFFFFF !important;
+        border-collapse: collapse !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        border: 2px solid #FFD166 !important;
+        margin: 8px 0 !important;
+    }
+    thead, thead tr {
+        background-color: #FFF0D4 !important;
+    }
+    thead th {
+        background-color: #FFF0D4 !important;
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        padding: 10px 12px !important;
+        border-bottom: 2px solid #F6AD55 !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+    }
+    tbody, tbody tr {
+        background-color: #FFFFFF !important;
+    }
+    tbody td {
+        background-color: #FFFFFF !important;
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        text-align: center !important;
+        padding: 10px 12px !important;
+        border-bottom: 1px solid #E2E8F0 !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        font-weight: 700 !important;
+    }
+
+    /* =========================================================
        FORMULARIOS Y CONTENEDORES CON BORDE — FONDO SIEMPRE BLANCO
        ========================================================= */
     div[data-testid="stForm"],
@@ -1035,51 +1078,47 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
             history = user_stats["history"]
             
             # --- HERRAMIENTA 1: Cargar Pesaje en Fecha Pasada (Carga Histórica) ---
-            with st.container():
-                st.markdown(f"#### 📅 Cargar Pesaje en Fecha Pasada para **{user_to_edit}**")
-                st.caption("Úsalo para cargar pesajes anteriores que no pudiste registrar en su momento.")
-                
-                with st.form("form_historical_weight", clear_on_submit=False):
-                    st.markdown("**📅 Elegí la fecha del pesaje:**")
-                    col_d, col_m, col_y = st.columns(3)
-                    with col_d:
-                        hist_day = st.selectbox("Día", options=list(range(1, 32)), index=date.today().day - 1, key="hist_day")
-                    with col_m:
-                        meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
-                        hist_month = st.selectbox("Mes", options=list(range(1, 13)), index=date.today().month - 1, format_func=lambda x: meses[x-1], key="hist_month")
-                    with col_y:
-                        current_year = date.today().year
-                        hist_year = st.selectbox("Año", options=list(range(current_year - 1, current_year + 1)), index=1, key="hist_year")
-                    
-                    col_w, col_btn = st.columns([1, 1.2])
-                    with col_w:
-                        hist_weight = st.number_input(
-                            "Peso (kg):",
-                            min_value=30.0,
-                            max_value=250.0,
-                            value=float(user_stats["current_weight"]),
-                            step=0.1,
-                            format="%.1f",
-                            key="input_hist_weight_entry"
-                        )
-                    with col_btn:
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                        btn_save_hist = st.form_submit_button("🌴 Guardar Pesaje en Fecha", use_container_width=True)
-                        
-                    if btn_save_hist:
-                        try:
-                            hist_date = date(hist_year, hist_month, hist_day)
-                        except ValueError:
-                            st.error("❌ La fecha elegida no es válida. Revisá el día y el mes.")
+            st.markdown(f"#### 📅 Cargar Pesaje en Fecha Pasada para **{user_to_edit}**")
+            st.caption("Úsalo para cargar pesajes anteriores que no pudiste registrar en su momento.")
+            
+            st.markdown("**📅 Elegí la fecha del pesaje:**")
+            col_d, col_m, col_y = st.columns(3)
+            with col_d:
+                hist_day = st.selectbox("Día", options=list(range(1, 32)), index=date.today().day - 1, key="hist_day")
+            with col_m:
+                meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
+                hist_month = st.selectbox("Mes", options=list(range(1, 13)), index=date.today().month - 1, format_func=lambda x: meses[x-1], key="hist_month")
+            with col_y:
+                current_year = date.today().year
+                hist_year = st.selectbox("Año", options=list(range(current_year - 1, current_year + 1)), index=1, key="hist_year")
+            
+            col_w, col_btn = st.columns([1, 1.2])
+            with col_w:
+                hist_weight = st.number_input(
+                    "Peso (kg):",
+                    min_value=30.0,
+                    max_value=250.0,
+                    value=float(user_stats["current_weight"]),
+                    step=0.1,
+                    format="%.1f",
+                    key="input_hist_weight_entry"
+                )
+            with col_btn:
+                st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                if st.button("🌴 Guardar Pesaje en Fecha", key="btn_save_hist_direct", use_container_width=True):
+                    try:
+                        hist_date = date(hist_year, hist_month, hist_day)
+                    except ValueError:
+                        st.error("❌ La fecha elegida no es válida. Revisá el día y el mes.")
+                    else:
+                        target_d_str = hist_date.strftime("%Y-%m-%d")
+                        succ, msg = dm.log_weight(user_to_edit, hist_weight, entry_date=target_d_str)
+                        if succ:
+                            st.success(f"✅ ¡Pesaje del {hist_date.strftime('%d/%m/%Y')} registrado con éxito para {user_to_edit}!")
+                            show_sync_status()
+                            st.rerun()
                         else:
-                            target_d_str = hist_date.strftime("%Y-%m-%d")
-                            succ, msg = dm.log_weight(user_to_edit, hist_weight, entry_date=target_d_str)
-                            if succ:
-                                st.success(f"✅ ¡Pesaje del {hist_date.strftime('%d/%m/%Y')} registrado con éxito para {user_to_edit}!")
-                                show_sync_status()
-                                st.rerun()
-                            else:
-                                st.error(msg)
+                            st.error(msg)
             
             st.markdown("---")
             
@@ -1088,34 +1127,14 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
             with col_tbl:
                 st.markdown(f"**Historial completo de {user_to_edit}:**")
                 
-                # Tabla simple, clara y 100% fondo blanco sin recuadros oscuros
-                rows_html = ""
-                for item in reversed(history):  # Mostrar los más recientes arriba
+                # Tabla simple de markdown con fondo blanco garantizado
+                md_table = "| 📅 Fecha | ⚖️ Peso |\n| :---: | :---: |\n"
+                for item in reversed(history):  # Más recientes arriba
                     f_date = pd.to_datetime(item["date"]).strftime("%d/%m/%Y")
                     f_weight = f"{item['weight']:.1f} kg"
-                    rows_html += f"""
-                    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #FFFFFF !important;">
-                        <td style="padding: 8px 10px; text-align: center; font-weight: 600; color: #1A202C !important; background-color: #FFFFFF !important;">{f_date}</td>
-                        <td style="padding: 8px 10px; text-align: center; font-weight: 800; color: #1A202C !important; background-color: #FFFFFF !important; font-size: 1rem;">{f_weight}</td>
-                    </tr>
-                    """
+                    md_table += f"| {f_date} | **{f_weight}** |\n"
                 
-                table_html = f"""
-                <div style="background-color: #FFFFFF !important; border: 2px solid #FFD166; border-radius: 12px; overflow: hidden; margin-top: 4px; margin-bottom: 12px; width: 100%;">
-                    <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF !important; margin: 0;">
-                        <thead>
-                            <tr style="background-color: #FFF0D4 !important; border-bottom: 2px solid #F6AD55;">
-                                <th style="padding: 8px 10px; text-align: center; font-weight: 800; color: #1A202C !important; font-size: 0.9rem; background-color: #FFF0D4 !important;">📅 Fecha</th>
-                                <th style="padding: 8px 10px; text-align: center; font-weight: 800; color: #1A202C !important; font-size: 0.9rem; background-color: #FFF0D4 !important;">⚖️ Peso</th>
-                            </tr>
-                        </thead>
-                        <tbody style="background-color: #FFFFFF !important;">
-                            {rows_html}
-                        </tbody>
-                    </table>
-                </div>
-                """
-                st.markdown(table_html, unsafe_allow_html=True)
+                st.markdown(md_table)
                 
             with col_actions:
                 st.markdown("**Modificar o corregir un registro:**")
@@ -1127,25 +1146,22 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
                 selected_date = st.selectbox("Selecciona la fecha a corregir:", options=dates_available, key="select_date_to_edit_history")
                 current_val = next((item["weight"] for item in history if item["date"] == selected_date), 70.0)
                 
-                with st.form("form_edit_weight"):
-                    corrected_weight = st.number_input(
-                        f"Nuevo peso para {selected_date} (kg):",
-                        min_value=30.0,
-                        max_value=250.0,
-                        value=float(current_val),
-                        step=0.1,
-                        format="%.1f",
-                        key="input_corrected_weight_val"
-                    )
-                    btn_update = st.form_submit_button("💾 Guardar Corrección", use_container_width=True)
-                    
-                    if btn_update:
-                        succ, msg = dm.update_weight_entry(user_to_edit, selected_date, corrected_weight)
-                        if succ:
-                            st.success(msg)
-                            st.rerun()
-                        else:
-                            st.error(msg)
+                corrected_weight = st.number_input(
+                    f"Nuevo peso para {selected_date} (kg):",
+                    min_value=30.0,
+                    max_value=250.0,
+                    value=float(current_val),
+                    step=0.1,
+                    format="%.1f",
+                    key="input_corrected_weight_val"
+                )
+                if st.button("💾 Guardar Corrección", key="btn_save_corrected_weight", use_container_width=True):
+                    succ, msg = dm.update_weight_entry(user_to_edit, selected_date, corrected_weight)
+                    if succ:
+                        st.success(msg)
+                        st.rerun()
+                    else:
+                        st.error(msg)
                 
                 st.markdown("---")
                 if st.button(f"🗑️ Eliminar pesaje del {selected_date}", key=f"btn_delete_entry_{user_to_edit}_{selected_date}", use_container_width=True):
