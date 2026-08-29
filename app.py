@@ -82,7 +82,7 @@ st.markdown("""
     }
 
     /* =========================================================
-       MENÚS DESPLEGABLES Y POPOVERS (SELECTBOX / MULTISELECT)
+       MENÚS DESPLEGABLES, DATEPICKER Y POPOVERS
        Fondo siempre blanco y texto siempre negro
        ========================================================= */
     div[data-baseweb="select"] > div {
@@ -94,43 +94,74 @@ st.markdown("""
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
     }
+
+    /* Date Input (Fecha de inicio / Fechas históricas) */
+    div[data-testid="stDateInput"],
+    div[data-testid="stDateInput"] > div,
+    div[data-testid="stDateInput"] > div > div,
+    div[data-baseweb="datepicker"],
+    div[data-baseweb="datepicker"] > div {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        border: 1px solid #CBD5E0 !important;
+        border-radius: 12px !important;
+    }
+    div[data-testid="stDateInput"] input,
+    div[data-testid="stDateInput"] * {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        font-weight: 600 !important;
+    }
+    div[data-testid="stDateInput"] svg {
+        fill: #1A202C !important;
+    }
     
     /* Popover desplegado (fuera del contenedor normal) */
     div[data-baseweb="popover"],
     div[data-baseweb="popover"] > div,
     div[data-baseweb="menu"],
-    ul[role="listbox"] {
+    ul[role="listbox"],
+    div[data-baseweb="calendar"],
+    div[data-baseweb="calendar"] *,
+    div[aria-roledescription="calendar"],
+    div[aria-roledescription="calendar"] * {
         background-color: #FFFFFF !important;
         background: #FFFFFF !important;
         border: 2px solid #FFD166 !important;
         border-radius: 12px !important;
         box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
     }
     
-    /* Opciones dentro del menú desplegable */
+    /* Opciones dentro del menú desplegable y celdas del calendario */
     li[role="option"],
     div[role="option"],
-    ul[role="listbox"] li {
+    ul[role="listbox"] li,
+    div[role="gridcell"] {
         background-color: #FFFFFF !important;
         background: #FFFFFF !important;
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
         font-weight: 700 !important;
-        padding: 10px 14px !important;
+        padding: 8px 12px !important;
     }
     li[role="option"] *,
     div[role="option"] *,
-    ul[role="listbox"] li * {
+    ul[role="listbox"] li *,
+    div[role="gridcell"] * {
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
         background-color: transparent !important;
     }
     
-    /* Opción seleccionada o con cursor encima */
+    /* Opción o día seleccionado / hover */
     li[role="option"]:hover,
     li[role="option"]:hover *,
     li[role="option"][aria-selected="true"],
-    li[role="option"][aria-selected="true"] * {
+    li[role="option"][aria-selected="true"] *,
+    div[role="gridcell"]:hover,
+    div[role="gridcell"][aria-selected="true"] {
         background-color: #FFE3C2 !important;
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
@@ -988,10 +1019,35 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
             col_tbl, col_actions = st.columns([1, 1])
             with col_tbl:
                 st.markdown(f"**Historial completo de {user_to_edit}:**")
-                df_hist = pd.DataFrame(history)
-                df_hist["Fecha"] = pd.to_datetime(df_hist["date"]).dt.strftime("%d/%m/%Y")
-                df_hist["Peso (kg)"] = df_hist["weight"]
-                st.dataframe(df_hist[["Fecha", "Peso (kg)"]], use_container_width=True, hide_index=True)
+                
+                # Tabla HTML con fondo blanco garantizado y texto centrado
+                rows_html = ""
+                for item in reversed(history):  # Mostrar los más recientes arriba
+                    f_date = pd.to_datetime(item["date"]).strftime("%d/%m/%Y")
+                    f_weight = f"{item['weight']:.1f} kg"
+                    rows_html += f"""
+                    <tr style="border-bottom: 1px solid #E2E8F0;">
+                        <td style="padding: 10px 12px; text-align: center; font-weight: 600; color: #1A202C; background-color: #FFFFFF;">{f_date}</td>
+                        <td style="padding: 10px 12px; text-align: center; font-weight: 800; color: #1A202C; background-color: #FFFFFF; font-size: 1rem;">{f_weight}</td>
+                    </tr>
+                    """
+                
+                table_html = f"""
+                <div style="background-color: #FFFFFF; border: 2px solid #FFD166; border-radius: 14px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.04); margin-top: 4px; margin-bottom: 12px;">
+                    <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF;">
+                        <thead>
+                            <tr style="background: #FFF0D4; border-bottom: 2px solid #F6AD55;">
+                                <th style="padding: 10px 12px; text-align: center; font-weight: 800; color: #1A202C; font-size: 0.9rem;">📅 Fecha</th>
+                                <th style="padding: 10px 12px; text-align: center; font-weight: 800; color: #1A202C; font-size: 0.9rem;">⚖️ Peso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows_html}
+                        </tbody>
+                    </table>
+                </div>
+                """
+                st.markdown(table_html, unsafe_allow_html=True)
                 
             with col_actions:
                 st.markdown("**Modificar o corregir un registro:**")
