@@ -501,7 +501,7 @@ def show_sync_status():
     """Muestra una notificación con el resultado de la última sincronización."""
     sync = dm.get_last_sync_status()
     if sync["success"] is True:
-        st.toast(f"☁️ {sync['message']}", icon="✅")
+        st.success(f"☁️ {sync['message']}")
     elif sync["success"] is False:
         st.error(f"⚠️ {sync['message']}")
 
