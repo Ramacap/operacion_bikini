@@ -101,87 +101,23 @@ st.markdown("""
 
     /* =========================================================
        DATE INPUT (SELECTOR DE FECHA) Y CALENDARIO FLOTANTE
+       El calendario se renderiza como PORTAL fuera de .stApp,
+       directamente en <body>. Necesitamos selectores globales.
        ========================================================= */
     div[data-testid="stDateInput"],
     div[data-testid="stDateInput"] > div,
     div[data-testid="stDateInput"] > div > div,
-    div[data-baseweb="datepicker"],
-    div[data-baseweb="datepicker"] > div {
+    div[data-testid="stDateInput"] input {
         background-color: #FFFFFF !important;
         background: #FFFFFF !important;
-        border: 1px solid #CBD5E0 !important;
-        border-radius: 12px !important;
-    }
-    div[data-testid="stDateInput"] input,
-    div[data-testid="stDateInput"] * {
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
+        border: 1px solid #CBD5E0 !important;
+        border-radius: 12px !important;
         font-weight: 600 !important;
     }
     div[data-testid="stDateInput"] svg {
         fill: #1A202C !important;
-    }
-
-    /* Popover y Diálogo del Calendario (Fuera de .stApp) */
-    [data-baseweb="popover"],
-    [data-baseweb="popover"] > div,
-    [data-baseweb="calendar"],
-    [data-baseweb="calendar"] div,
-    [data-baseweb="calendar"] section,
-    div[aria-roledescription="calendar"],
-    div[aria-roledescription="calendar"] div,
-    div[role="dialog"],
-    div[role="dialog"] div {
-        background-color: #FFFFFF !important;
-        background: #FFFFFF !important;
-        color: #1A202C !important;
-        -webkit-text-fill-color: #1A202C !important;
-        border-radius: 14px !important;
-    }
-    
-    /* Días del calendario (números, botones y celdas) */
-    [data-baseweb="calendar"] button,
-    [data-baseweb="calendar"] [role="gridcell"],
-    [data-baseweb="calendar"] [role="gridcell"] *,
-    [data-baseweb="calendar"] [role="row"] * {
-        color: #1A202C !important;
-        -webkit-text-fill-color: #1A202C !important;
-        background-color: #FFFFFF !important;
-        background: #FFFFFF !important;
-        font-weight: 700 !important;
-        font-size: 0.92rem !important;
-    }
-
-    /* Día seleccionado en el calendario */
-    [data-baseweb="calendar"] [aria-selected="true"],
-    [data-baseweb="calendar"] [aria-selected="true"] *,
-    [data-baseweb="calendar"] [role="gridcell"][aria-selected="true"],
-    [data-baseweb="calendar"] [role="gridcell"][aria-selected="true"] * {
-        background-color: #FF8E53 !important;
-        background: #FF8E53 !important;
-        color: #FFFFFF !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-        border-radius: 50% !important;
-    }
-
-    /* Hover en días del calendario */
-    [data-baseweb="calendar"] button:hover,
-    [data-baseweb="calendar"] [role="gridcell"]:hover {
-        background-color: #FFE3C2 !important;
-        border-radius: 50% !important;
-    }
-
-    /* Cabecera del calendario (mes, año, flechas de navegación) */
-    [data-baseweb="calendar"] header,
-    [data-baseweb="calendar"] header *,
-    [data-baseweb="calendar"] select,
-    [data-baseweb="calendar"] option,
-    [data-baseweb="calendar"] svg {
-        color: #1A202C !important;
-        -webkit-text-fill-color: #1A202C !important;
-        fill: #1A202C !important;
-        background-color: #FFFFFF !important;
-        font-weight: 800 !important;
     }
 
     /* =========================================================
@@ -464,6 +400,111 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# CSS inyectado directamente en <head> del documento vía JavaScript.
+# Esto es NECESARIO porque el calendario de BaseWeb se renderiza como
+# portal fuera del contenedor de Streamlit (.stApp), y el CSS del
+# st.markdown normal no lo alcanza.
+st.markdown("""
+<script>
+(function() {
+    if (document.getElementById('bikini-portal-css')) return;
+    var style = document.createElement('style');
+    style.id = 'bikini-portal-css';
+    style.textContent = `
+        /* ===== PORTALES BASEWEB: CALENDARIO, POPOVER, MENUS ===== */
+        /* Forzar color-scheme light en todo el documento */
+        :root, html, body { color-scheme: light !important; }
+
+        /* Popover contenedor (calendario, selectbox dropdown) */
+        body > div[data-baseweb="popover"],
+        body > div[data-baseweb="layer"],
+        body > div[data-baseweb="layer"] > div,
+        div[data-baseweb="popover"],
+        div[data-baseweb="popover"] > div,
+        div[data-baseweb="popover"] > div > div,
+        div[data-baseweb="popover"] > div > div > div {
+            background-color: #FFFFFF !important;
+            background: #FFFFFF !important;
+            color: #1A202C !important;
+            border-radius: 14px !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+        }
+
+        /* Calendario completo y todos sus hijos */
+        div[data-baseweb="datepicker"],
+        div[data-baseweb="datepicker"] *,
+        div[data-baseweb="calendar"],
+        div[data-baseweb="calendar"] *,
+        div[aria-roledescription="calendar"],
+        div[aria-roledescription="calendar"] * {
+            background-color: #FFFFFF !important;
+            background: #FFFFFF !important;
+            color: #1A202C !important;
+            -webkit-text-fill-color: #1A202C !important;
+        }
+
+        /* Celdas del calendario (dias) */
+        div[data-baseweb="calendar"] div[role="gridcell"],
+        div[data-baseweb="calendar"] div[role="gridcell"] div,
+        div[data-baseweb="calendar"] button {
+            background-color: #FFFFFF !important;
+            background: #FFFFFF !important;
+            color: #1A202C !important;
+            -webkit-text-fill-color: #1A202C !important;
+            font-weight: 700 !important;
+        }
+
+        /* Dia seleccionado */
+        div[data-baseweb="calendar"] div[role="gridcell"][aria-selected="true"],
+        div[data-baseweb="calendar"] div[role="gridcell"][aria-selected="true"] div {
+            background-color: #FF8E53 !important;
+            background: #FF8E53 !important;
+            color: #FFFFFF !important;
+            -webkit-text-fill-color: #FFFFFF !important;
+            border-radius: 50% !important;
+        }
+
+        /* Hover en dias */
+        div[data-baseweb="calendar"] div[role="gridcell"]:hover {
+            background-color: #FFE3C2 !important;
+            border-radius: 50% !important;
+        }
+
+        /* Cabecera del calendario (mes, flechas) */
+        div[data-baseweb="calendar"] div[aria-live="assertive"],
+        div[data-baseweb="calendar"] div[aria-live="assertive"] * {
+            color: #1A202C !important;
+            -webkit-text-fill-color: #1A202C !important;
+            font-weight: 800 !important;
+        }
+        div[data-baseweb="calendar"] svg {
+            fill: #1A202C !important;
+            color: #1A202C !important;
+        }
+
+        /* Nombres de dias de la semana (Lu Ma Mi...) */
+        div[data-baseweb="calendar"] div[role="row"]:first-child div {
+            color: #718096 !important;
+            -webkit-text-fill-color: #718096 !important;
+            font-weight: 600 !important;
+            font-size: 0.8rem !important;
+        }
+    `;
+    document.head.appendChild(style);
+})();
+</script>
+""", unsafe_allow_html=True)
+
+
+# Helper: muestra el estado de la última sincronización con GitHub después de guardar
+def show_sync_status():
+    """Muestra una notificación con el resultado de la última sincronización."""
+    sync = dm.get_last_sync_status()
+    if sync["success"] is True:
+        st.toast(f"☁️ {sync['message']}", icon="✅")
+    elif sync["success"] is False:
+        st.error(f"⚠️ {sync['message']}")
+
 
 # --- ENCABEZADO Y ESTADO DE COMPETENCIA ---
 is_closed, days_left, deadline_str = dm.get_competition_status()
@@ -658,6 +699,7 @@ if st.session_state.active_nav_tab == "🏖️ Mi Progreso":
                                         st.success(f"🎉🎉 ¡FELICITACIONES {selected_user.upper()}! ¡ALCANZASTE TU META DE {stats['target_weight']} kg! 🍾👙☀️")
                                     else:
                                         st.success(msg)
+                                    show_sync_status()
                                     st.rerun()
                                 else:
                                     st.error(msg)
@@ -1031,6 +1073,7 @@ elif st.session_state.active_nav_tab == "➕ Nueva Participante":
                             st.session_state["multiselect_group_users_widget"] = current_list
                     st.session_state.active_nav_tab = "🏖️ Mi Progreso"
                     st.success(msg)
+                    show_sync_status()
                     st.rerun()
                 else:
                     st.error(msg)
@@ -1083,6 +1126,7 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
                         succ, msg = dm.log_weight(user_to_edit, hist_weight, entry_date=target_d_str)
                         if succ:
                             st.success(f"✅ ¡Pesaje del {hist_date.strftime('%d/%m/%Y')} registrado con éxito para {user_to_edit}!")
+                            show_sync_status()
                             st.rerun()
                         else:
                             st.error(msg)
@@ -1268,12 +1312,62 @@ elif st.session_state.active_nav_tab == "💾 Copia de Seguridad":
         )
         
     st.markdown("---")
-    st.subheader("☁️ Persistencia Automática en la Nube")
+    st.subheader("☁️ Estado del Auto-Guardado en GitHub")
     
     if dm.is_github_sync_active():
-        st.success("🟢 **Sincronización con GitHub: ACTIVA**\n\nCada vez que alguien carga un peso o crea una participante, los datos se auto-guardan directamente en tu repositorio de GitHub. ¡Tus datos están protegidos contra reinicios del servidor!")
+        repo_name = dm.get_github_repo_name()
+        st.success(f"""
+        🟢 **Sincronización en la Nube: CONECTADA Y ACTIVA**
+        
+        * **Repositorio:** `{repo_name}`
+        * **Archivo:** `data/operacion_bikini.json`
+        * **Funcionamiento:** En cada pesaje o participante nueva, la app hace un commit automático a GitHub. Aunque Streamlit se reinicie o actualices el código, **los datos nunca se borrarán**.
+        """)
+        
+        if st.button("🧪 Probar Conexión con GitHub", key="btn_test_github_sync", use_container_width=True):
+            with st.spinner("Verificando permisos y conexión con GitHub..."):
+                ok, test_msg = dm.test_github_connection()
+                if ok:
+                    st.success(test_msg)
+                else:
+                    st.error(test_msg)
     else:
-        st.info("💡 **Consejo de Protección:** Puedes activar el auto-guardado en GitHub en Streamlit Cloud configurando un Token en *Settings > Secrets*. Así nunca más se perderán pesajes.")
+        st.warning("""
+        🔴 **Auto-Guardado en GitHub: NO ACTIVADO AÚN**
+        
+        Actualmente la app está guardando en el disco temporal de Streamlit. Si actualizas la app o el servidor se reinicia, los datos se perderán.
+        """)
+        
+        with st.expander("👉 Haz clic aquí para activar el Auto-Guardado permanente en 2 minutos", expanded=True):
+            st.markdown("""
+            **1. Crea un Token en GitHub:**
+            * Entra a [GitHub.com](https://github.com/) ➔ Clic en tu foto de perfil (arriba a la derecha) ➔ **Settings**.
+            * Baja en el menú izquierdo hasta **Developer settings** ➔ **Personal access tokens** ➔ **Tokens (classic)**.
+            * Clic en **Generate new token (classic)**.
+            * En *Note* pon `Streamlit Bikini`, **marca la casilla `repo`** (primer casillero) y haz clic en **Generate token** (botón verde al final).
+            * Copia el código que empieza con `ghp_...`.
+
+            **2. Pégalo en Streamlit Cloud:**
+            * En [share.streamlit.io](https://share.streamlit.io/), abre tu app y haz clic en los 3 puntos `...` ➔ **Settings** ➔ **Secrets**.
+            * Pega este bloque (reemplazando con tu token y tu usuario/repositorio):
+            ```toml
+            [github]
+            token = "ghp_TU_TOKEN_DE_GITHUB_AQUI"
+            repo = "tu-usuario-de-github/nombre-de-tu-repo"
+            branch = "main"
+            file_path = "data/operacion_bikini.json"
+            ```
+            * Haz clic en **Save**. ¡Listo! Al volver aquí verás la luz verde 🟢.
+            """)
+            
+            if st.button("🧪 Probar Conexión con GitHub", key="btn_test_github_sync_inactive", use_container_width=True):
+                with st.spinner("Comprobando credenciales..."):
+                    ok, test_msg = dm.test_github_connection()
+                    if ok:
+                        st.success(test_msg)
+                        st.rerun()
+                    else:
+                        st.error(test_msg)
 
 
 # --- PIE DE PÁGINA ---

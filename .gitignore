@@ -16,3 +16,10 @@ ENV/
 .vscode/
 .idea/
 *.swp
+
+# =========================================================
+# BASE DE DATOS — NO SUBIR A GITHUB MANUALMENTE
+# La app guarda y lee los datos vía GitHub API (auto-sync).
+# Si subís este archivo, PISÁS los datos reales de las chicas.
+# =========================================================
+data/operacion_bikini.json

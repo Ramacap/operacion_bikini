@@ -45,6 +45,43 @@ def is_github_sync_active() -> bool:
     return _get_github_config() is not None
 
 
+def get_github_repo_name() -> str:
+    """Retorna el nombre del repositorio configurado o vacío."""
+    cfg = _get_github_config()
+    return cfg.get("repo", "") if cfg else ""
+
+
+def test_github_connection() -> Tuple[bool, str]:
+    """Prueba la conexión con la API de GitHub usando los secrets configurados."""
+    config = _get_github_config()
+    if not config:
+        return False, "No se encontró la configuración [github] en Streamlit Secrets. Sigue los pasos de configuración abajo."
+    
+    token = config.get("token", "")
+    repo = config.get("repo", "")
+    if not token or not repo:
+        return False, "Falta 'token' o 'repo' en la configuración de [github]."
+        
+    try:
+        url = f"https://api.github.com/repos/{repo}/contents/{config['file_path']}?ref={config['branch']}"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"
+        }
+        res = requests.get(url, headers=headers, timeout=6)
+        if res.status_code == 200:
+            return True, f"¡Conexión exitosa con el repositorio '{repo}'! El archivo '{config['file_path']}' se lee y sincroniza correctamente."
+        elif res.status_code == 401:
+            return False, "Error de autenticación (401): El Token de GitHub es inválido o expiró."
+        elif res.status_code == 404:
+            return False, f"No se encontró el repositorio '{repo}' o el archivo '{config['file_path']}' (404). Verifica que el nombre del repositorio sea exacto (ej: 'tu-usuario/nombre-repo')."
+        else:
+            return False, f"GitHub respondió con código {res.status_code}: {res.text}"
+    except Exception as e:
+        return False, f"Error de conexión con GitHub: {e}"
+
+
 def _fetch_from_github(config: Dict[str, str]) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """Obtiene los datos más recientes directamente desde GitHub API."""
     try:
@@ -141,18 +178,36 @@ def load_data() -> Dict[str, Any]:
     except (json.JSONDecodeError, OSError):
         return {"users": {}}
 
+# Variable global para rastrear el estado de la última sincronización
+_last_sync_result = {"success": None, "message": "", "timestamp": ""}
+
+
+def get_last_sync_status() -> Dict[str, Any]:
+    """Retorna el estado de la última sincronización con GitHub."""
+    return _last_sync_result.copy()
+
 
 def save_data(data: Dict[str, Any]) -> None:
     """
     Guarda los datos en el archivo local y los sincroniza automáticamente en GitHub.
     """
+    global _last_sync_result
+    
     _ensure_data_file()
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
     config = _get_github_config()
     if config:
-        _push_to_github(config, data)
+        ok = _push_to_github(config, data)
+        ts = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        if ok:
+            _last_sync_result = {"success": True, "message": f"Datos sincronizados a GitHub correctamente.", "timestamp": ts}
+        else:
+            _last_sync_result = {"success": False, "message": f"Error al sincronizar con GitHub. Los datos se guardaron localmente.", "timestamp": ts}
+    else:
+        _last_sync_result = {"success": None, "message": "GitHub no configurado. Solo se guardó localmente.", "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
+
 
 
 def get_deadline(year: Optional[int] = None) -> datetime:
