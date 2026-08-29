@@ -47,9 +47,14 @@ st.markdown("""
        FORZAR TEMA CLARO Y TIPOGRAFÍAS EN NEGRO / OSCURO
        Evita que el modo oscuro del móvil ponga textos o fondos invisibles
        ========================================================= */
+    :root, html, body {
+        color-scheme: light !important;
+    }
+
     .stApp, .stApp > div, [data-testid="stAppViewContainer"], [data-testid="block-container"] {
         background-color: #FFFDF9 !important;
         color: #1A202C !important;
+        color-scheme: light !important;
     }
     
     /* Tipografía general */
@@ -66,7 +71,7 @@ st.markdown("""
     }
 
     /* =========================================================
-       INPUTS Y FORMULARIOS — TEXTO SIEMPRE NEGRO
+       INPUTS, NUMBER INPUTS Y FORMULARIOS — TEXTO SIEMPRE NEGRO
        ========================================================= */
     input, input[type="text"], input[type="number"], textarea {
         color: #1A202C !important;
@@ -80,22 +85,23 @@ st.markdown("""
         border-color: #FF8E53 !important;
         box-shadow: 0 0 0 2px rgba(255, 142, 83, 0.25) !important;
     }
+    
+    /* Botones de incremento/decremento en number input (+ / -) */
+    button[data-testid="stNumberInputStepDown"],
+    button[data-testid="stNumberInputStepUp"] {
+        background-color: #FFF0D4 !important;
+        color: #1A202C !important;
+        border: 1px solid #F6AD55 !important;
+    }
+    button[data-testid="stNumberInputStepDown"] *,
+    button[data-testid="stNumberInputStepUp"] * {
+        color: #1A202C !important;
+        fill: #1A202C !important;
+    }
 
     /* =========================================================
-       MENÚS DESPLEGABLES, DATEPICKER Y POPOVERS
-       Fondo siempre blanco y texto siempre negro
+       DATE INPUT (SELECTOR DE FECHA) Y CALENDARIO FLOTANTE
        ========================================================= */
-    div[data-baseweb="select"] > div {
-        background-color: #FFFFFF !important;
-        border: 2px solid #CBD5E0 !important;
-        border-radius: 12px !important;
-    }
-    div[data-baseweb="select"] * {
-        color: #1A202C !important;
-        -webkit-text-fill-color: #1A202C !important;
-    }
-
-    /* Date Input (Fecha de inicio / Fechas históricas) */
     div[data-testid="stDateInput"],
     div[data-testid="stDateInput"] > div,
     div[data-testid="stDateInput"] > div > div,
@@ -115,30 +121,94 @@ st.markdown("""
     div[data-testid="stDateInput"] svg {
         fill: #1A202C !important;
     }
-    
-    /* Popover desplegado (fuera del contenedor normal) */
-    div[data-baseweb="popover"],
-    div[data-baseweb="popover"] > div,
-    div[data-baseweb="menu"],
-    ul[role="listbox"],
-    div[data-baseweb="calendar"],
-    div[data-baseweb="calendar"] *,
+
+    /* Popover y Diálogo del Calendario (Fuera de .stApp) */
+    [data-baseweb="popover"],
+    [data-baseweb="popover"] > div,
+    [data-baseweb="calendar"],
+    [data-baseweb="calendar"] div,
+    [data-baseweb="calendar"] section,
     div[aria-roledescription="calendar"],
-    div[aria-roledescription="calendar"] * {
+    div[aria-roledescription="calendar"] div,
+    div[role="dialog"],
+    div[role="dialog"] div {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        border-radius: 14px !important;
+    }
+    
+    /* Días del calendario (números, botones y celdas) */
+    [data-baseweb="calendar"] button,
+    [data-baseweb="calendar"] [role="gridcell"],
+    [data-baseweb="calendar"] [role="gridcell"] *,
+    [data-baseweb="calendar"] [role="row"] * {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        font-weight: 700 !important;
+        font-size: 0.92rem !important;
+    }
+
+    /* Día seleccionado en el calendario */
+    [data-baseweb="calendar"] [aria-selected="true"],
+    [data-baseweb="calendar"] [aria-selected="true"] *,
+    [data-baseweb="calendar"] [role="gridcell"][aria-selected="true"],
+    [data-baseweb="calendar"] [role="gridcell"][aria-selected="true"] * {
+        background-color: #FF8E53 !important;
+        background: #FF8E53 !important;
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        border-radius: 50% !important;
+    }
+
+    /* Hover en días del calendario */
+    [data-baseweb="calendar"] button:hover,
+    [data-baseweb="calendar"] [role="gridcell"]:hover {
+        background-color: #FFE3C2 !important;
+        border-radius: 50% !important;
+    }
+
+    /* Cabecera del calendario (mes, año, flechas de navegación) */
+    [data-baseweb="calendar"] header,
+    [data-baseweb="calendar"] header *,
+    [data-baseweb="calendar"] select,
+    [data-baseweb="calendar"] option,
+    [data-baseweb="calendar"] svg {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        fill: #1A202C !important;
+        background-color: #FFFFFF !important;
+        font-weight: 800 !important;
+    }
+
+    /* =========================================================
+       MENÚS DESPLEGABLES (SELECTBOX / MULTISELECT)
+       ========================================================= */
+    div[data-baseweb="select"] > div {
+        background-color: #FFFFFF !important;
+        border: 2px solid #CBD5E0 !important;
+        border-radius: 12px !important;
+    }
+    div[data-baseweb="select"] * {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+    }
+    
+    div[data-baseweb="menu"],
+    ul[role="listbox"] {
         background-color: #FFFFFF !important;
         background: #FFFFFF !important;
         border: 2px solid #FFD166 !important;
         border-radius: 12px !important;
         box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
-        color: #1A202C !important;
-        -webkit-text-fill-color: #1A202C !important;
     }
     
-    /* Opciones dentro del menú desplegable y celdas del calendario */
     li[role="option"],
     div[role="option"],
-    ul[role="listbox"] li,
-    div[role="gridcell"] {
+    ul[role="listbox"] li {
         background-color: #FFFFFF !important;
         background: #FFFFFF !important;
         color: #1A202C !important;
@@ -148,20 +218,16 @@ st.markdown("""
     }
     li[role="option"] *,
     div[role="option"] *,
-    ul[role="listbox"] li *,
-    div[role="gridcell"] * {
+    ul[role="listbox"] li * {
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
         background-color: transparent !important;
     }
     
-    /* Opción o día seleccionado / hover */
     li[role="option"]:hover,
     li[role="option"]:hover *,
     li[role="option"][aria-selected="true"],
-    li[role="option"][aria-selected="true"] *,
-    div[role="gridcell"]:hover,
-    div[role="gridcell"][aria-selected="true"] {
+    li[role="option"][aria-selected="true"] * {
         background-color: #FFE3C2 !important;
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
@@ -177,6 +243,14 @@ st.markdown("""
         color: #1A202C !important;
         -webkit-text-fill-color: #1A202C !important;
         font-weight: 700 !important;
+    }
+
+    /* Radio Buttons */
+    div[data-testid="stRadio"] *,
+    div[role="radiogroup"] * {
+        color: #1A202C !important;
+        -webkit-text-fill-color: #1A202C !important;
+        font-weight: 600 !important;
     }
 
     /* Encabezado Principal */
