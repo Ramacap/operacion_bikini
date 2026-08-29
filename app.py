@@ -894,16 +894,18 @@ elif st.session_state.active_nav_tab == "📊 Competencia":
 # =========================================================
 elif st.session_state.active_nav_tab == "➕ Nueva Participante":
     st.subheader("➕ Registrar Nueva Participante")
-    st.markdown("Suma una amiga al desafío de **Operación Bikini**. Su peso inicial quedará registrado como el punto de partida.")
+    st.markdown("Suma una amiga al desafío de **Operación Bikini**. Puedes elegir la fecha de inicio en la que comenzó su pesaje.")
     
     with st.form("form_new_user", clear_on_submit=True):
-        col_n1, col_n2, col_n3 = st.columns(3)
+        col_n1, col_n2, col_n3, col_n4 = st.columns([1.2, 1, 1, 1])
         with col_n1:
             new_nickname = st.text_input("Apodo / Nombre:", placeholder="Ej: Caro, Lucre, Mari...", key="input_new_nickname")
         with col_n2:
             new_start_weight = st.number_input("Peso Inicial (kg):", min_value=30.0, max_value=250.0, value=70.0, step=0.1, format="%.1f", key="input_new_start_weight")
         with col_n3:
             new_target_weight = st.number_input("Peso Objetivo (kg):", min_value=30.0, max_value=250.0, value=65.0, step=0.1, format="%.1f", key="input_new_target_weight")
+        with col_n4:
+            new_start_date = st.date_input("📅 Fecha de Inicio:", value=date.today(), format="DD/MM/YYYY", key="input_new_start_date")
             
         btn_add_user = st.form_submit_button("🍹 Registrar Participante", use_container_width=True)
         
@@ -911,7 +913,8 @@ elif st.session_state.active_nav_tab == "➕ Nueva Participante":
             if not new_nickname:
                 st.error("Por favor ingresa un apodo.")
             else:
-                success, msg = dm.add_user(new_nickname, new_start_weight, new_target_weight)
+                date_str = new_start_date.strftime("%Y-%m-%d")
+                success, msg = dm.add_user(new_nickname, new_start_weight, new_target_weight, entry_date=date_str)
                 if success:
                     clean_nick = new_nickname.strip()
                     st.session_state.selected_nickname = clean_nick
@@ -932,8 +935,8 @@ elif st.session_state.active_nav_tab == "➕ Nueva Participante":
 # VISTA 4: HISTORIAL & CORRECCIÓN
 # =========================================================
 elif st.session_state.active_nav_tab == "✏️ Historial":
-    st.subheader("✏️ Modificar o Eliminar Pesajes")
-    st.caption("Si cargaste mal un número o quieres corregir un pesaje anterior, puedes gestionarlo aquí.")
+    st.subheader("✏️ Gestión de Historial y Cargas Pasadas")
+    st.caption("Carga pesajes de fechas anteriores, modifica registros existentes o elimina errores.")
     
     if not all_users:
         st.info("No hay participantes cargadas.")
@@ -947,22 +950,57 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
         if user_stats:
             history = user_stats["history"]
             
+            # --- HERRAMIENTA 1: Cargar Pesaje en Fecha Pasada (Carga Histórica) ---
+            with st.container(border=True):
+                st.markdown(f"#### 📅 Cargar Pesaje en Fecha Pasada para **{user_to_edit}**")
+                st.caption("Úsalo para cargar pesajes anteriores que no pudiste registrar en su momento.")
+                
+                with st.form("form_historical_weight", clear_on_submit=False):
+                    col_h1, col_h2, col_h3 = st.columns([1, 1, 1.2])
+                    with col_h1:
+                        hist_date = st.date_input("Fecha del pesaje:", value=date.today(), format="DD/MM/YYYY", key="input_hist_date_entry")
+                    with col_h2:
+                        hist_weight = st.number_input(
+                            "Peso (kg):",
+                            min_value=30.0,
+                            max_value=250.0,
+                            value=float(user_stats["current_weight"]),
+                            step=0.1,
+                            format="%.1f",
+                            key="input_hist_weight_entry"
+                        )
+                    with col_h3:
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                        btn_save_hist = st.form_submit_button("🌴 Guardar Pesaje en Fecha", use_container_width=True)
+                        
+                    if btn_save_hist:
+                        target_d_str = hist_date.strftime("%Y-%m-%d")
+                        succ, msg = dm.log_weight(user_to_edit, hist_weight, entry_date=target_d_str)
+                        if succ:
+                            st.success(f"✅ ¡Pesaje del {hist_date.strftime('%d/%m/%Y')} registrado con éxito para {user_to_edit}!")
+                            st.rerun()
+                        else:
+                            st.error(msg)
+            
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            
+            # --- HERRAMIENTA 2: Ver Historial y Modificar / Eliminar ---
             col_tbl, col_actions = st.columns([1, 1])
             with col_tbl:
-                st.markdown(f"**Historial de pesajes de {user_to_edit}:**")
+                st.markdown(f"**Historial completo de {user_to_edit}:**")
                 df_hist = pd.DataFrame(history)
                 df_hist["Fecha"] = pd.to_datetime(df_hist["date"]).dt.strftime("%d/%m/%Y")
                 df_hist["Peso (kg)"] = df_hist["weight"]
                 st.dataframe(df_hist[["Fecha", "Peso (kg)"]], use_container_width=True, hide_index=True)
                 
             with col_actions:
-                st.markdown("**Acciones de corrección:**")
+                st.markdown("**Modificar o corregir un registro:**")
                 dates_available = [item["date"] for item in history]
                 
                 if "select_date_to_edit_history" in st.session_state and st.session_state["select_date_to_edit_history"] not in dates_available:
                     st.session_state.pop("select_date_to_edit_history", None)
 
-                selected_date = st.selectbox("Selecciona la fecha a modificar o eliminar:", options=dates_available, key="select_date_to_edit_history")
+                selected_date = st.selectbox("Selecciona la fecha a corregir:", options=dates_available, key="select_date_to_edit_history")
                 current_val = next((item["weight"] for item in history if item["date"] == selected_date), 70.0)
                 
                 with st.form("form_edit_weight"):
@@ -1068,11 +1106,11 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
 
 
 # =========================================================
-# VISTA 5: COPIA DE SEGURIDAD & DATOS
+# VISTA 5: COPIA DE SEGURIDAD & PERSISTENCIA CLOUD
 # =========================================================
 elif st.session_state.active_nav_tab == "💾 Copia de Seguridad":
-    st.subheader("💾 Copia de Seguridad y Exportación")
-    st.markdown("Descarga los datos en cualquier momento para tener un respaldo en tu computadora o teléfono.")
+    st.subheader("💾 Copia de Seguridad y Estado de la Nube")
+    st.markdown("Descarga un respaldo en cualquier momento en tu computadora o celular.")
     
     col_d1, col_d2 = st.columns(2)
     
@@ -1100,26 +1138,12 @@ elif st.session_state.active_nav_tab == "💾 Copia de Seguridad":
         )
         
     st.markdown("---")
-    st.subheader("🎲 Datos de Prueba para Demostración")
-    st.caption("Si quieres probar la app con participantes de ejemplo:")
+    st.subheader("☁️ Persistencia Automática en la Nube")
     
-    if st.button("🌴 Cargar Participantes de Demostración (Demo)", key="btn_load_demo_sample_data", use_container_width=True):
-        demo_users = {
-            "Valeria":  {"start": 74.5, "target": 68.0, "logs": [("2026-08-15", 74.5), ("2026-08-18", 74.0), ("2026-08-20", 73.2), ("2026-08-23", 72.6), ("2026-08-27", 72.0)]},
-            "Claudia":  {"start": 69.0, "target": 64.0, "logs": [("2026-08-15", 69.0), ("2026-08-18", 68.5), ("2026-08-21", 68.1), ("2026-08-24", 67.8), ("2026-08-27", 67.3)]},
-            "Silvina":  {"start": 80.0, "target": 72.0, "logs": [("2026-08-15", 80.0), ("2026-08-18", 79.0), ("2026-08-22", 76.5), ("2026-08-25", 73.2), ("2026-08-27", 71.8)]},
-            "Mariana":  {"start": 65.0, "target": 60.0, "logs": [("2026-08-16", 65.0), ("2026-08-19", 65.2), ("2026-08-23", 65.4), ("2026-08-25", 64.9), ("2026-08-27", 64.6)]},
-        }
-        for nick, data in demo_users.items():
-            dm.add_user(nick, data["start"], data["target"], entry_date=data["logs"][0][0])
-            for d_str, w_val in data["logs"][1:]:
-                dm.log_weight(nick, w_val, entry_date=d_str)
-        st.session_state.selected_nickname = "Valeria"
-        st.session_state["select_user_progress_dropdown"] = "Valeria"
-        st.session_state["multiselect_group_users_widget"] = list(demo_users.keys())
-        st.session_state.active_nav_tab = "🏖️ Mi Progreso"
-        st.success("¡Datos de prueba cargados con éxito! 🏖️💃")
-        st.rerun()
+    if dm.is_github_sync_active():
+        st.success("🟢 **Sincronización con GitHub: ACTIVA**\n\nCada vez que alguien carga un peso o crea una participante, los datos se auto-guardan directamente en tu repositorio de GitHub. ¡Tus datos están protegidos contra reinicios del servidor!")
+    else:
+        st.info("💡 **Consejo de Protección:** Puedes activar el auto-guardado en GitHub en Streamlit Cloud configurando un Token en *Settings > Secrets*. Así nunca más se perderán pesajes.")
 
 
 # --- PIE DE PÁGINA ---

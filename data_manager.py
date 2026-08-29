@@ -1,13 +1,16 @@
 """
 data_manager.py - Gestor de persistencia y cálculos para Operación Bikini 🌴👙☀️
-Maneja el almacenamiento en JSON, registro de participantes, pesajes, métricas y estado de la competencia.
+Maneja el almacenamiento en JSON con auto-sincronización en la nube (GitHub API),
+registro de participantes, pesajes históricos, métricas y estado de la competencia.
 """
 
 import json
 import os
+import base64
 from datetime import datetime, date
 from typing import Dict, Any, List, Tuple, Optional
 import pandas as pd
+import requests
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 DATA_FILE = os.path.join(DATA_DIR, "operacion_bikini.json")
@@ -15,6 +18,97 @@ DATA_FILE = os.path.join(DATA_DIR, "operacion_bikini.json")
 # Fecha de cierre de la competencia (17 de Noviembre del año en curso)
 DEADLINE_MONTH = 11
 DEADLINE_DAY = 17
+
+
+def _get_github_config() -> Optional[Dict[str, str]]:
+    """Obtiene la configuración de GitHub desde st.secrets si está disponible."""
+    try:
+        import streamlit as st
+        if "github" in st.secrets:
+            cfg = st.secrets["github"]
+            token = cfg.get("token", "").strip()
+            repo = cfg.get("repo", "").strip()
+            if token and repo:
+                return {
+                    "token": token,
+                    "repo": repo,
+                    "branch": cfg.get("branch", "main").strip(),
+                    "file_path": cfg.get("file_path", "data/operacion_bikini.json").strip()
+                }
+    except Exception:
+        pass
+    return None
+
+
+def is_github_sync_active() -> bool:
+    """Verifica si la sincronización con GitHub está configurada en secrets."""
+    return _get_github_config() is not None
+
+
+def _fetch_from_github(config: Dict[str, str]) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Obtiene los datos más recientes directamente desde GitHub API."""
+    try:
+        url = f"https://api.github.com/repos/{config['repo']}/contents/{config['file_path']}?ref={config['branch']}"
+        headers = {
+            "Authorization": f"Bearer {config['token']}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"
+        }
+        res = requests.get(url, headers=headers, timeout=6)
+        if res.status_code == 200:
+            json_resp = res.json()
+            content_b64 = json_resp.get("content", "")
+            sha = json_resp.get("sha")
+            raw_bytes = base64.b64decode(content_b64)
+            data = json.loads(raw_bytes.decode("utf-8"))
+            if "users" not in data:
+                data["users"] = {}
+            # Actualizar copia local en caché de disco
+            _ensure_data_file()
+            with open(DATA_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            return data, sha
+    except Exception as e:
+        print(f"[GitHub Sync] Error al leer de GitHub: {e}")
+    return None, None
+
+
+def _push_to_github(config: Dict[str, str], data_dict: Dict[str, Any]) -> bool:
+    """Sube la versión actualizada del JSON a GitHub haciendo un commit automático."""
+    try:
+        url = f"https://api.github.com/repos/{config['repo']}/contents/{config['file_path']}"
+        headers = {
+            "Authorization": f"Bearer {config['token']}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"
+        }
+        
+        # Obtener el SHA actual del archivo remoto
+        get_res = requests.get(f"{url}?ref={config['branch']}", headers=headers, timeout=6)
+        sha = None
+        if get_res.status_code == 200:
+            sha = get_res.json().get("sha")
+            
+        json_str = json.dumps(data_dict, ensure_ascii=False, indent=2)
+        content_b64 = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
+        
+        payload = {
+            "message": f"📊 Auto-guardado pesajes [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [skip ci]",
+            "content": content_b64,
+            "branch": config["branch"]
+        }
+        if sha:
+            payload["sha"] = sha
+            
+        put_res = requests.put(url, headers=headers, json=payload, timeout=8)
+        if put_res.status_code in [200, 201]:
+            return True
+        else:
+            print(f"[GitHub Sync] Error al guardar en GitHub: Status {put_res.status_code} - {put_res.text}")
+            return False
+    except Exception as e:
+        print(f"[GitHub Sync] Excepción al guardar en GitHub: {e}")
+        return False
 
 
 def _ensure_data_file() -> None:
@@ -27,7 +121,16 @@ def _ensure_data_file() -> None:
 
 
 def load_data() -> Dict[str, Any]:
-    """Carga los datos del archivo JSON de manera segura."""
+    """
+    Carga los datos del archivo JSON. Si hay conexión configurada con GitHub,
+    descarga la versión más actualizada de la nube.
+    """
+    config = _get_github_config()
+    if config:
+        cloud_data, _ = _fetch_from_github(config)
+        if cloud_data is not None:
+            return cloud_data
+
     _ensure_data_file()
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -40,10 +143,16 @@ def load_data() -> Dict[str, Any]:
 
 
 def save_data(data: Dict[str, Any]) -> None:
-    """Guarda los datos en el archivo JSON."""
+    """
+    Guarda los datos en el archivo local y los sincroniza automáticamente en GitHub.
+    """
     _ensure_data_file()
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+    config = _get_github_config()
+    if config:
+        _push_to_github(config, data)
 
 
 def get_deadline(year: Optional[int] = None) -> datetime:
@@ -76,7 +185,7 @@ def get_all_users() -> List[str]:
 
 def add_user(nickname: str, start_weight: float, target_weight: float, entry_date: Optional[str] = None) -> Tuple[bool, str]:
     """
-    Registra una nueva participante y añade su peso inicial como primer pesaje.
+    Registra una nueva participante y añade su peso inicial con la fecha indicada.
     """
     nickname = nickname.strip()
     if not nickname:
@@ -88,10 +197,6 @@ def add_user(nickname: str, start_weight: float, target_weight: float, entry_dat
     
     if start_weight <= 0 or target_weight <= 0:
         return False, "Los pesos deben ser mayores a 0 kg."
-    
-    if target_weight >= start_weight:
-        # Advertencia amigable, pero permitida por si es mantenimiento
-        pass
 
     today_str = entry_date or date.today().strftime("%Y-%m-%d")
     
@@ -113,7 +218,7 @@ def add_user(nickname: str, start_weight: float, target_weight: float, entry_dat
 
 def log_weight(nickname: str, weight: float, entry_date: Optional[str] = None) -> Tuple[bool, str]:
     """
-    Registra o actualiza el peso de una usuaria para una fecha dada (por defecto, hoy).
+    Registra o actualiza el peso de una usuaria para una fecha dada.
     """
     is_closed, _, deadline_str = get_competition_status()
     if is_closed:
@@ -147,6 +252,11 @@ def log_weight(nickname: str, weight: float, entry_date: Optional[str] = None) -
     weights.sort(key=lambda x: x["date"])
     data["users"][nickname]["weights"] = weights
     
+    # Si la fecha cargada es anterior a la fecha inicial registrada, actualizar el peso inicial
+    if len(weights) > 0:
+        data["users"][nickname]["start_weight"] = weights[0]["weight"]
+        data["users"][nickname]["created_at"] = weights[0]["date"]
+    
     save_data(data)
     action_text = "actualizado" if found else "registrado"
     return True, f"¡Pesaje de {weight} kg {action_text} con éxito para {nickname} ({target_date})! 👙✨"
@@ -172,6 +282,10 @@ def update_weight_entry(nickname: str, date_str: str, new_weight: float) -> Tupl
     if not found:
         return False, f"No se encontró un registro para la fecha {date_str}."
         
+    # Re-sincronizar peso inicial si se modificó el primer registro
+    if weights and weights[0]["date"] == date_str:
+        data["users"][nickname]["start_weight"] = round(float(new_weight), 1)
+
     save_data(data)
     return True, f"Registro del {date_str} modificado correctamente a {new_weight} kg."
 
@@ -191,6 +305,12 @@ def delete_weight_entry(nickname: str, date_str: str) -> Tuple[bool, str]:
         return False, f"No se encontró registro para la fecha {date_str}."
         
     data["users"][nickname]["weights"] = new_weights
+    
+    # Re-sincronizar peso inicial
+    if new_weights:
+        data["users"][nickname]["start_weight"] = new_weights[0]["weight"]
+        data["users"][nickname]["created_at"] = new_weights[0]["date"]
+
     save_data(data)
     return True, f"Registro del {date_str} eliminado exitosamente."
 
@@ -235,17 +355,14 @@ def get_user_stats(nickname: str) -> Optional[Dict[str, Any]]:
         last_delta = 0.0
         prev_date = latest_date
         
-    # Variación total acumulada (negativo = bajó de peso, positivo = subió)
+    # Variación total acumulada
     total_delta = round(current_weight - start_weight, 1)
-    total_lost = round(start_weight - current_weight, 1) # positivo = kilos bajados
+    total_lost = round(start_weight - current_weight, 1)
     
     # Distancia a la meta
     remaining_to_goal = round(current_weight - target_weight, 1)
-    
-    # Meta de descenso total planeada
     total_target_loss = round(start_weight - target_weight, 1)
     
-    # Porcentaje de avance hacia la meta
     if total_target_loss > 0:
         progress_pct = round((total_lost / total_target_loss) * 100, 1)
     else:
@@ -260,10 +377,10 @@ def get_user_stats(nickname: str) -> Optional[Dict[str, Any]]:
         "current_weight": current_weight,
         "latest_date": latest_date,
         "prev_date": prev_date,
-        "last_delta": last_delta,          # positivo: subió, negativo: bajó
-        "total_delta": total_delta,        # vs inicial
-        "total_lost": total_lost,          # kg bajados positivos
-        "remaining_to_goal": remaining_to_goal, # <= 0 significa meta cumplida
+        "last_delta": last_delta,
+        "total_delta": total_delta,
+        "total_lost": total_lost,
+        "remaining_to_goal": remaining_to_goal,
         "total_target_loss": total_target_loss,
         "progress_pct": progress_pct,
         "goal_achieved": goal_achieved,
@@ -286,7 +403,6 @@ def get_hall_of_fame() -> List[Dict[str, Any]]:
     """Retorna las participantes que alcanzaron su objetivo."""
     all_stats = get_all_stats()
     achieved = [st for st in all_stats if st["goal_achieved"]]
-    # Ordenar por mayor porcentaje de meta alcanzada o más kilos bajados
     achieved.sort(key=lambda x: x["total_lost"], reverse=True)
     return achieved
 
