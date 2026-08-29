@@ -21,6 +21,17 @@
           "weight": 56.5
         }
       ]
+    },
+    "Gacha": {
+      "start_weight": 56.4,
+      "target_weight": 50.0,
+      "created_at": "2026-08-29",
+      "weights": [
+        {
+          "date": "2026-08-29",
+          "weight": 56.4
+        }
+      ]
     }
   }
 }
