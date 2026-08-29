@@ -400,37 +400,34 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# CSS inyectado directamente en <head> del documento vía JavaScript.
-# Esto es NECESARIO porque el calendario de BaseWeb se renderiza como
-# portal fuera del contenedor de Streamlit (.stApp), y el CSS del
-# st.markdown normal no lo alcanza.
-st.markdown("""
+# CSS inyectado en el documento PADRE vía streamlit.components.v1.html().
+# st.markdown filtra <script>, pero components.html() SÍ lo ejecuta.
+# El calendario BaseWeb se renderiza como portal fuera del iframe de Streamlit,
+# así que necesitamos inyectar en window.parent.document.head.
+import streamlit.components.v1 as components
+components.html("""
 <script>
 (function() {
-    if (document.getElementById('bikini-portal-css')) return;
-    var style = document.createElement('style');
+    var doc = window.parent.document;
+    if (doc.getElementById('bikini-portal-css')) return;
+    var style = doc.createElement('style');
     style.id = 'bikini-portal-css';
     style.textContent = `
-        /* ===== PORTALES BASEWEB: CALENDARIO, POPOVER, MENUS ===== */
-        /* Forzar color-scheme light en todo el documento */
         :root, html, body { color-scheme: light !important; }
 
-        /* Popover contenedor (calendario, selectbox dropdown) */
-        body > div[data-baseweb="popover"],
-        body > div[data-baseweb="layer"],
-        body > div[data-baseweb="layer"] > div,
+        /* Popover contenedor */
         div[data-baseweb="popover"],
         div[data-baseweb="popover"] > div,
         div[data-baseweb="popover"] > div > div,
-        div[data-baseweb="popover"] > div > div > div {
+        div[data-baseweb="popover"] > div > div > div,
+        div[data-baseweb="layer"] > div {
             background-color: #FFFFFF !important;
             background: #FFFFFF !important;
             color: #1A202C !important;
-            border-radius: 14px !important;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+            -webkit-text-fill-color: #1A202C !important;
         }
 
-        /* Calendario completo y todos sus hijos */
+        /* Calendario completo */
         div[data-baseweb="datepicker"],
         div[data-baseweb="datepicker"] *,
         div[data-baseweb="calendar"],
@@ -443,7 +440,7 @@ st.markdown("""
             -webkit-text-fill-color: #1A202C !important;
         }
 
-        /* Celdas del calendario (dias) */
+        /* Celdas del calendario */
         div[data-baseweb="calendar"] div[role="gridcell"],
         div[data-baseweb="calendar"] div[role="gridcell"] div,
         div[data-baseweb="calendar"] button {
@@ -464,46 +461,64 @@ st.markdown("""
             border-radius: 50% !important;
         }
 
-        /* Hover en dias */
+        /* Hover */
         div[data-baseweb="calendar"] div[role="gridcell"]:hover {
             background-color: #FFE3C2 !important;
-            border-radius: 50% !important;
         }
 
-        /* Cabecera del calendario (mes, flechas) */
+        /* Cabecera mes/año y flechas */
         div[data-baseweb="calendar"] div[aria-live="assertive"],
         div[data-baseweb="calendar"] div[aria-live="assertive"] * {
             color: #1A202C !important;
             -webkit-text-fill-color: #1A202C !important;
             font-weight: 800 !important;
+            background-color: #FFFFFF !important;
         }
         div[data-baseweb="calendar"] svg {
             fill: #1A202C !important;
             color: #1A202C !important;
         }
 
-        /* Nombres de dias de la semana (Lu Ma Mi...) */
+        /* Nombres dias semana */
         div[data-baseweb="calendar"] div[role="row"]:first-child div {
             color: #718096 !important;
             -webkit-text-fill-color: #718096 !important;
             font-weight: 600 !important;
-            font-size: 0.8rem !important;
+        }
+
+        /* Selectbox dropdown menus (también portales) */
+        div[data-baseweb="menu"],
+        div[data-baseweb="menu"] *,
+        ul[role="listbox"],
+        ul[role="listbox"] * {
+            background-color: #FFFFFF !important;
+            background: #FFFFFF !important;
+            color: #1A202C !important;
+            -webkit-text-fill-color: #1A202C !important;
+        }
+        li[role="option"]:hover,
+        li[role="option"][aria-selected="true"] {
+            background-color: #FFE3C2 !important;
         }
     `;
-    document.head.appendChild(style);
+    doc.head.appendChild(style);
 })();
 </script>
-""", unsafe_allow_html=True)
+""", height=0, scrolling=False)
+
 
 
 # Helper: muestra el estado de la última sincronización con GitHub después de guardar
 def show_sync_status():
     """Muestra una notificación con el resultado de la última sincronización."""
-    sync = dm.get_last_sync_status()
-    if sync["success"] is True:
-        st.success(f"☁️ {sync['message']}")
-    elif sync["success"] is False:
-        st.error(f"⚠️ {sync['message']}")
+    try:
+        sync = dm.get_last_sync_status()
+        if sync["success"] is True:
+            st.success(f"☁️ {sync['message']}")
+        elif sync["success"] is False:
+            st.error(f"⚠️ {sync['message']}")
+    except Exception:
+        pass  # Nunca bloquear al usuario por un error de notificación
 
 
 # --- ENCABEZADO Y ESTADO DE COMPETENCIA ---
