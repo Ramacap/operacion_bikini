@@ -10,17 +10,6 @@
           "weight": 66.0
         }
       ]
-    },
-    "Prueba": {
-      "start_weight": 75.0,
-      "target_weight": 65.0,
-      "created_at": "2026-08-29",
-      "weights": [
-        {
-          "date": "2026-08-29",
-          "weight": 75.0
-        }
-      ]
     }
   }
 }
