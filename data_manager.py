@@ -14,6 +14,7 @@ import requests
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 DATA_FILE = os.path.join(DATA_DIR, "operacion_bikini.json")
+BACKUPS_DIR = os.path.join(DATA_DIR, "backups")
 
 # Fecha de cierre de la competencia (17 de Noviembre del año en curso)
 DEADLINE_MONTH = 11
@@ -110,17 +111,23 @@ def _fetch_from_github(config: Dict[str, str]) -> Tuple[Optional[Dict[str, Any]]
     return None, None
 
 
-def _push_to_github(config: Dict[str, str], data_dict: Dict[str, Any]) -> bool:
-    """Sube la versión actualizada del JSON a GitHub haciendo un commit automático."""
+def _push_to_github(
+    config: Dict[str, str],
+    data_dict: Dict[str, Any],
+    target_file_path: Optional[str] = None,
+    commit_msg: Optional[str] = None
+) -> bool:
+    """Sube una versión del JSON a GitHub haciendo un commit automático."""
     try:
-        url = f"https://api.github.com/repos/{config['repo']}/contents/{config['file_path']}"
+        f_path = target_file_path or config["file_path"]
+        url = f"https://api.github.com/repos/{config['repo']}/contents/{f_path}"
         headers = {
             "Authorization": f"Bearer {config['token']}",
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28"
         }
         
-        # Obtener el SHA actual del archivo remoto
+        # Obtener el SHA actual del archivo remoto si ya existe
         get_res = requests.get(f"{url}?ref={config['branch']}", headers=headers, timeout=6)
         sha = None
         if get_res.status_code == 200:
@@ -129,8 +136,9 @@ def _push_to_github(config: Dict[str, str], data_dict: Dict[str, Any]) -> bool:
         json_str = json.dumps(data_dict, ensure_ascii=False, indent=2)
         content_b64 = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
         
+        msg = commit_msg or f"📊 Auto-guardado pesajes [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [skip ci]"
         payload = {
-            "message": f"📊 Auto-guardado pesajes [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [skip ci]",
+            "message": msg,
             "content": content_b64,
             "branch": config["branch"]
         }
@@ -141,17 +149,19 @@ def _push_to_github(config: Dict[str, str], data_dict: Dict[str, Any]) -> bool:
         if put_res.status_code in [200, 201]:
             return True
         else:
-            print(f"[GitHub Sync] Error al guardar en GitHub: Status {put_res.status_code} - {put_res.text}")
+            print(f"[GitHub Sync] Error al guardar en GitHub ({f_path}): Status {put_res.status_code} - {put_res.text}")
             return False
     except Exception as e:
-        print(f"[GitHub Sync] Excepción al guardar en GitHub: {e}")
+        print(f"[GitHub Sync] Excepción al guardar en GitHub ({f_path}): {e}")
         return False
 
 
 def _ensure_data_file() -> None:
-    """Asegura que el directorio y el archivo JSON existan."""
+    """Asegura que los directorios data/, data/backups/ y el archivo principal existan."""
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(BACKUPS_DIR):
+        os.makedirs(BACKUPS_DIR, exist_ok=True)
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump({"users": {}}, f, ensure_ascii=False, indent=2)
@@ -189,24 +199,144 @@ def get_last_sync_status() -> Dict[str, Any]:
 
 def save_data(data: Dict[str, Any]) -> None:
     """
-    Guarda los datos en el archivo local y los sincroniza automáticamente en GitHub.
+    Guarda los datos en el archivo principal Y en una copia con fecha diaria
+    (tanto en disco local como en GitHub).
     """
     global _last_sync_result
     
     _ensure_data_file()
+    
+    # 1. Guardar archivo principal local
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+    # 2. Guardar copia histórica local con fecha del día
+    today_str = date.today().strftime("%Y-%m-%d")
+    backup_file_local = os.path.join(BACKUPS_DIR, f"operacion_bikini_{today_str}.json")
+    with open(backup_file_local, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    # 3. Sincronizar en GitHub (archivo principal + copia fechada)
     config = _get_github_config()
     if config:
-        ok = _push_to_github(config, data)
+        # Subir archivo principal
+        ok_main = _push_to_github(config, data)
+        # Subir copia con fecha a la carpeta backups/ de GitHub
+        backup_git_path = f"data/backups/operacion_bikini_{today_str}.json"
+        _push_to_github(
+            config,
+            data,
+            target_file_path=backup_git_path,
+            commit_msg=f"💾 Respaldo diario [{today_str}] [skip ci]"
+        )
+        
         ts = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        if ok:
-            _last_sync_result = {"success": True, "message": f"Datos sincronizados a GitHub correctamente.", "timestamp": ts}
+        if ok_main:
+            _last_sync_result = {
+                "success": True,
+                "message": f"Datos guardados y respaldados con fecha {today_str} en GitHub.",
+                "timestamp": ts
+            }
         else:
-            _last_sync_result = {"success": False, "message": f"Error al sincronizar con GitHub. Los datos se guardaron localmente.", "timestamp": ts}
+            _last_sync_result = {
+                "success": False,
+                "message": f"Error al sincronizar con GitHub. Los datos se guardaron localmente.",
+                "timestamp": ts
+            }
     else:
-        _last_sync_result = {"success": None, "message": "GitHub no configurado. Solo se guardó localmente.", "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
+        _last_sync_result = {
+            "success": None,
+            "message": f"GitHub no configurado. Respaldo guardado localmente ({today_str}).",
+            "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        }
+
+
+def list_available_backups() -> List[str]:
+    """Retorna la lista de fechas disponibles de copias de seguridad (ej: ['2026-08-29'])."""
+    _ensure_data_file()
+    dates_found = set()
+    
+    # 1. Buscar en backups locales
+    if os.path.exists(BACKUPS_DIR):
+        for f in os.listdir(BACKUPS_DIR):
+            if f.startswith("operacion_bikini_") and f.endswith(".json"):
+                d_str = f.replace("operacion_bikini_", "").replace(".json", "")
+                dates_found.add(d_str)
+
+    # 2. Si hay conexión con GitHub, consultar lista de backups remotos
+    config = _get_github_config()
+    if config:
+        try:
+            url = f"https://api.github.com/repos/{config['repo']}/contents/data/backups?ref={config['branch']}"
+            headers = {
+                "Authorization": f"Bearer {config['token']}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+            res = requests.get(url, headers=headers, timeout=5)
+            if res.status_code == 200:
+                for item in res.json():
+                    name = item.get("name", "")
+                    if name.startswith("operacion_bikini_") and name.endswith(".json"):
+                        d_str = name.replace("operacion_bikini_", "").replace(".json", "")
+                        dates_found.add(d_str)
+        except Exception:
+            pass
+
+    return sorted(list(dates_found), reverse=True)
+
+
+def restore_backup_by_date(date_str: str) -> Tuple[bool, str]:
+    """
+    Restaura la base de datos a partir de una copia de seguridad con fecha dada.
+    """
+    date_str = date_str.strip()
+    data_to_restore = None
+    
+    # 1. Intentar leer de local
+    local_path = os.path.join(BACKUPS_DIR, f"operacion_bikini_{date_str}.json")
+    if os.path.exists(local_path):
+        try:
+            with open(local_path, "r", encoding="utf-8") as f:
+                data_to_restore = json.load(f)
+        except Exception:
+            pass
+            
+    # 2. Si no está en local, intentar descargar de GitHub
+    if not data_to_restore:
+        config = _get_github_config()
+        if config:
+            try:
+                url = f"https://api.github.com/repos/{config['repo']}/contents/data/backups/operacion_bikini_{date_str}.json?ref={config['branch']}"
+                headers = {
+                    "Authorization": f"Bearer {config['token']}",
+                    "Accept": "application/vnd.github+json",
+                    "X-GitHub-Api-Version": "2022-11-28"
+                }
+                res = requests.get(url, headers=headers, timeout=6)
+                if res.status_code == 200:
+                    raw_bytes = base64.b64decode(res.json().get("content", ""))
+                    data_to_restore = json.loads(raw_bytes.decode("utf-8"))
+            except Exception as e:
+                return False, f"Error al descargar copia de GitHub: {e}"
+                
+    if not data_to_restore or "users" not in data_to_restore:
+        return False, f"No se pudo encontrar o leer la copia del {date_str}."
+        
+    # Guardar como base de datos activa y sincronizar
+    save_data(data_to_restore)
+    user_count = len(data_to_restore.get("users", {}))
+    return True, f"¡Copia del {date_str} restaurada con éxito! ({user_count} participantes recuperadas)"
+
+
+def restore_from_json_dict(data_dict: Dict[str, Any]) -> Tuple[bool, str]:
+    """Valida y restaura una base de datos desde un diccionario JSON cargado manualmente."""
+    if not isinstance(data_dict, dict) or "users" not in data_dict:
+        return False, "El archivo JSON no tiene un formato válido (debe contener la clave 'users')."
+        
+    save_data(data_dict)
+    user_count = len(data_dict.get("users", {}))
+    return True, f"¡Archivo restaurado con éxito! ({user_count} participantes activadas)"
 
 
 

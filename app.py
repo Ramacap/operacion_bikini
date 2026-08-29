@@ -189,6 +189,19 @@ st.markdown("""
         font-weight: 600 !important;
     }
 
+    /* =========================================================
+       FORMULARIOS Y CONTENEDORES CON BORDE — FONDO SIEMPRE BLANCO
+       ========================================================= */
+    div[data-testid="stForm"],
+    div[data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="stVerticalBlockBorderWrapper"] > div {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        border: 2px solid #FFD166 !important;
+        border-radius: 14px !important;
+        color: #1A202C !important;
+    }
+
     /* Encabezado Principal */
     .main-header {
         background: linear-gradient(135deg, #FF6B6B 0%, #FFBE0B 50%, #00F5D4 100%);
@@ -399,112 +412,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-# CSS inyectado en el documento PADRE vía streamlit.components.v1.html().
-# st.markdown filtra <script>, pero components.html() SÍ lo ejecuta.
-# El calendario BaseWeb se renderiza como portal fuera del iframe de Streamlit,
-# así que necesitamos inyectar en window.parent.document.head.
-import streamlit.components.v1 as components
-components.html("""
-<script>
-(function() {
-    var doc = window.parent.document;
-    if (doc.getElementById('bikini-portal-css')) return;
-    var style = doc.createElement('style');
-    style.id = 'bikini-portal-css';
-    style.textContent = `
-        :root, html, body { color-scheme: light !important; }
-
-        /* Popover contenedor */
-        div[data-baseweb="popover"],
-        div[data-baseweb="popover"] > div,
-        div[data-baseweb="popover"] > div > div,
-        div[data-baseweb="popover"] > div > div > div,
-        div[data-baseweb="layer"] > div {
-            background-color: #FFFFFF !important;
-            background: #FFFFFF !important;
-            color: #1A202C !important;
-            -webkit-text-fill-color: #1A202C !important;
-        }
-
-        /* Calendario completo */
-        div[data-baseweb="datepicker"],
-        div[data-baseweb="datepicker"] *,
-        div[data-baseweb="calendar"],
-        div[data-baseweb="calendar"] *,
-        div[aria-roledescription="calendar"],
-        div[aria-roledescription="calendar"] * {
-            background-color: #FFFFFF !important;
-            background: #FFFFFF !important;
-            color: #1A202C !important;
-            -webkit-text-fill-color: #1A202C !important;
-        }
-
-        /* Celdas del calendario */
-        div[data-baseweb="calendar"] div[role="gridcell"],
-        div[data-baseweb="calendar"] div[role="gridcell"] div,
-        div[data-baseweb="calendar"] button {
-            background-color: #FFFFFF !important;
-            background: #FFFFFF !important;
-            color: #1A202C !important;
-            -webkit-text-fill-color: #1A202C !important;
-            font-weight: 700 !important;
-        }
-
-        /* Dia seleccionado */
-        div[data-baseweb="calendar"] div[role="gridcell"][aria-selected="true"],
-        div[data-baseweb="calendar"] div[role="gridcell"][aria-selected="true"] div {
-            background-color: #FF8E53 !important;
-            background: #FF8E53 !important;
-            color: #FFFFFF !important;
-            -webkit-text-fill-color: #FFFFFF !important;
-            border-radius: 50% !important;
-        }
-
-        /* Hover */
-        div[data-baseweb="calendar"] div[role="gridcell"]:hover {
-            background-color: #FFE3C2 !important;
-        }
-
-        /* Cabecera mes/año y flechas */
-        div[data-baseweb="calendar"] div[aria-live="assertive"],
-        div[data-baseweb="calendar"] div[aria-live="assertive"] * {
-            color: #1A202C !important;
-            -webkit-text-fill-color: #1A202C !important;
-            font-weight: 800 !important;
-            background-color: #FFFFFF !important;
-        }
-        div[data-baseweb="calendar"] svg {
-            fill: #1A202C !important;
-            color: #1A202C !important;
-        }
-
-        /* Nombres dias semana */
-        div[data-baseweb="calendar"] div[role="row"]:first-child div {
-            color: #718096 !important;
-            -webkit-text-fill-color: #718096 !important;
-            font-weight: 600 !important;
-        }
-
-        /* Selectbox dropdown menus (también portales) */
-        div[data-baseweb="menu"],
-        div[data-baseweb="menu"] *,
-        ul[role="listbox"],
-        ul[role="listbox"] * {
-            background-color: #FFFFFF !important;
-            background: #FFFFFF !important;
-            color: #1A202C !important;
-            -webkit-text-fill-color: #1A202C !important;
-        }
-        li[role="option"]:hover,
-        li[role="option"][aria-selected="true"] {
-            background-color: #FFE3C2 !important;
-        }
-    `;
-    doc.head.appendChild(style);
-})();
-</script>
-""", height=0, scrolling=False)
 
 
 
@@ -1059,15 +966,24 @@ elif st.session_state.active_nav_tab == "➕ Nueva Participante":
     st.markdown("Suma una amiga al desafío de **Operación Bikini**. Puedes elegir la fecha de inicio en la que comenzó su pesaje.")
     
     with st.form("form_new_user", clear_on_submit=True):
-        col_n1, col_n2, col_n3, col_n4 = st.columns([1.2, 1, 1, 1])
+        col_n1, col_n2, col_n3 = st.columns([1.2, 1, 1])
         with col_n1:
             new_nickname = st.text_input("Apodo / Nombre:", placeholder="Ej: Caro, Lucre, Mari...", key="input_new_nickname")
         with col_n2:
             new_start_weight = st.number_input("Peso Inicial (kg):", min_value=30.0, max_value=250.0, value=70.0, step=0.1, format="%.1f", key="input_new_start_weight")
         with col_n3:
             new_target_weight = st.number_input("Peso Objetivo (kg):", min_value=30.0, max_value=250.0, value=65.0, step=0.1, format="%.1f", key="input_new_target_weight")
-        with col_n4:
-            new_start_date = st.date_input("📅 Fecha de Inicio:", value=date.today(), format="DD/MM/YYYY", key="input_new_start_date")
+        
+        st.markdown("**📅 Fecha de Inicio:**")
+        col_fd, col_fm, col_fy = st.columns(3)
+        with col_fd:
+            reg_day = st.selectbox("Día", options=list(range(1, 32)), index=date.today().day - 1, key="reg_day")
+        with col_fm:
+            meses_reg = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
+            reg_month = st.selectbox("Mes", options=list(range(1, 13)), index=date.today().month - 1, format_func=lambda x: meses_reg[x-1], key="reg_month")
+        with col_fy:
+            cy = date.today().year
+            reg_year = st.selectbox("Año", options=list(range(cy - 1, cy + 1)), index=1, key="reg_year")
             
         btn_add_user = st.form_submit_button("🍹 Registrar Participante", use_container_width=True)
         
@@ -1075,6 +991,11 @@ elif st.session_state.active_nav_tab == "➕ Nueva Participante":
             if not new_nickname:
                 st.error("Por favor ingresa un apodo.")
             else:
+                try:
+                    new_start_date = date(reg_year, reg_month, reg_day)
+                except ValueError:
+                    st.error("❌ La fecha elegida no es válida. Revisá el día y el mes.")
+                    st.stop()
                 date_str = new_start_date.strftime("%Y-%m-%d")
                 success, msg = dm.add_user(new_nickname, new_start_weight, new_target_weight, entry_date=date_str)
                 if success:
@@ -1114,15 +1035,24 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
             history = user_stats["history"]
             
             # --- HERRAMIENTA 1: Cargar Pesaje en Fecha Pasada (Carga Histórica) ---
-            with st.container(border=True):
+            with st.container():
                 st.markdown(f"#### 📅 Cargar Pesaje en Fecha Pasada para **{user_to_edit}**")
                 st.caption("Úsalo para cargar pesajes anteriores que no pudiste registrar en su momento.")
                 
                 with st.form("form_historical_weight", clear_on_submit=False):
-                    col_h1, col_h2, col_h3 = st.columns([1, 1, 1.2])
-                    with col_h1:
-                        hist_date = st.date_input("Fecha del pesaje:", value=date.today(), format="DD/MM/YYYY", key="input_hist_date_entry")
-                    with col_h2:
+                    st.markdown("**📅 Elegí la fecha del pesaje:**")
+                    col_d, col_m, col_y = st.columns(3)
+                    with col_d:
+                        hist_day = st.selectbox("Día", options=list(range(1, 32)), index=date.today().day - 1, key="hist_day")
+                    with col_m:
+                        meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
+                        hist_month = st.selectbox("Mes", options=list(range(1, 13)), index=date.today().month - 1, format_func=lambda x: meses[x-1], key="hist_month")
+                    with col_y:
+                        current_year = date.today().year
+                        hist_year = st.selectbox("Año", options=list(range(current_year - 1, current_year + 1)), index=1, key="hist_year")
+                    
+                    col_w, col_btn = st.columns([1, 1.2])
+                    with col_w:
                         hist_weight = st.number_input(
                             "Peso (kg):",
                             min_value=30.0,
@@ -1132,49 +1062,54 @@ elif st.session_state.active_nav_tab == "✏️ Historial":
                             format="%.1f",
                             key="input_hist_weight_entry"
                         )
-                    with col_h3:
+                    with col_btn:
                         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                         btn_save_hist = st.form_submit_button("🌴 Guardar Pesaje en Fecha", use_container_width=True)
                         
                     if btn_save_hist:
-                        target_d_str = hist_date.strftime("%Y-%m-%d")
-                        succ, msg = dm.log_weight(user_to_edit, hist_weight, entry_date=target_d_str)
-                        if succ:
-                            st.success(f"✅ ¡Pesaje del {hist_date.strftime('%d/%m/%Y')} registrado con éxito para {user_to_edit}!")
-                            show_sync_status()
-                            st.rerun()
+                        try:
+                            hist_date = date(hist_year, hist_month, hist_day)
+                        except ValueError:
+                            st.error("❌ La fecha elegida no es válida. Revisá el día y el mes.")
                         else:
-                            st.error(msg)
+                            target_d_str = hist_date.strftime("%Y-%m-%d")
+                            succ, msg = dm.log_weight(user_to_edit, hist_weight, entry_date=target_d_str)
+                            if succ:
+                                st.success(f"✅ ¡Pesaje del {hist_date.strftime('%d/%m/%Y')} registrado con éxito para {user_to_edit}!")
+                                show_sync_status()
+                                st.rerun()
+                            else:
+                                st.error(msg)
             
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            st.markdown("---")
             
             # --- HERRAMIENTA 2: Ver Historial y Modificar / Eliminar ---
             col_tbl, col_actions = st.columns([1, 1])
             with col_tbl:
                 st.markdown(f"**Historial completo de {user_to_edit}:**")
                 
-                # Tabla HTML con fondo blanco garantizado y texto centrado
+                # Tabla simple, clara y 100% fondo blanco sin recuadros oscuros
                 rows_html = ""
                 for item in reversed(history):  # Mostrar los más recientes arriba
                     f_date = pd.to_datetime(item["date"]).strftime("%d/%m/%Y")
                     f_weight = f"{item['weight']:.1f} kg"
                     rows_html += f"""
-                    <tr style="border-bottom: 1px solid #E2E8F0;">
-                        <td style="padding: 10px 12px; text-align: center; font-weight: 600; color: #1A202C; background-color: #FFFFFF;">{f_date}</td>
-                        <td style="padding: 10px 12px; text-align: center; font-weight: 800; color: #1A202C; background-color: #FFFFFF; font-size: 1rem;">{f_weight}</td>
+                    <tr style="border-bottom: 1px solid #E2E8F0; background-color: #FFFFFF !important;">
+                        <td style="padding: 8px 10px; text-align: center; font-weight: 600; color: #1A202C !important; background-color: #FFFFFF !important;">{f_date}</td>
+                        <td style="padding: 8px 10px; text-align: center; font-weight: 800; color: #1A202C !important; background-color: #FFFFFF !important; font-size: 1rem;">{f_weight}</td>
                     </tr>
                     """
                 
                 table_html = f"""
-                <div style="background-color: #FFFFFF; border: 2px solid #FFD166; border-radius: 14px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.04); margin-top: 4px; margin-bottom: 12px;">
-                    <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF;">
+                <div style="background-color: #FFFFFF !important; border: 2px solid #FFD166; border-radius: 12px; overflow: hidden; margin-top: 4px; margin-bottom: 12px; width: 100%;">
+                    <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF !important; margin: 0;">
                         <thead>
-                            <tr style="background: #FFF0D4; border-bottom: 2px solid #F6AD55;">
-                                <th style="padding: 10px 12px; text-align: center; font-weight: 800; color: #1A202C; font-size: 0.9rem;">📅 Fecha</th>
-                                <th style="padding: 10px 12px; text-align: center; font-weight: 800; color: #1A202C; font-size: 0.9rem;">⚖️ Peso</th>
+                            <tr style="background-color: #FFF0D4 !important; border-bottom: 2px solid #F6AD55;">
+                                <th style="padding: 8px 10px; text-align: center; font-weight: 800; color: #1A202C !important; font-size: 0.9rem; background-color: #FFF0D4 !important;">📅 Fecha</th>
+                                <th style="padding: 8px 10px; text-align: center; font-weight: 800; color: #1A202C !important; font-size: 0.9rem; background-color: #FFF0D4 !important;">⚖️ Peso</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="background-color: #FFFFFF !important;">
                             {rows_html}
                         </tbody>
                     </table>
@@ -1327,6 +1262,52 @@ elif st.session_state.active_nav_tab == "💾 Copia de Seguridad":
         )
         
     st.markdown("---")
+    st.subheader("📂 Restaurar Copia de Seguridad por Fecha")
+    st.caption("Si alguna vez se borró o pisó información, puedes volver a una copia guardada en una fecha anterior.")
+    
+    available_backups = dm.list_available_backups()
+    
+    col_r1, col_r2 = st.columns([1.2, 1])
+    with col_r1:
+        st.markdown("**1. Restaurar desde historial automático:**")
+        if available_backups:
+            selected_b_date = st.selectbox(
+                "Selecciona la fecha del respaldo:",
+                options=available_backups,
+                format_func=lambda d: f"📅 Copia del {pd.to_datetime(d).strftime('%d/%m/%Y')} (operacion_bikini_{d}.json)",
+                key="select_backup_date_picker"
+            )
+            
+            if st.button(f"🔄 Restaurar base al día {selected_b_date}", key="btn_execute_restore_date", use_container_width=True):
+                with st.spinner("Restaurando datos..."):
+                    ok_r, msg_r = dm.restore_backup_by_date(selected_b_date)
+                    if ok_r:
+                        st.success(msg_r)
+                        st.rerun()
+                    else:
+                        st.error(msg_r)
+        else:
+            st.info("Aún no hay copias de fechas anteriores archivadas. Se crearán automáticamente con cada pesaje diario.")
+            
+    with col_r2:
+        st.markdown("**2. Restaurar subiendo archivo JSON:**")
+        uploaded_backup = st.file_uploader(
+            "Carga un archivo .json descargado previamente:",
+            type=["json"],
+            key="uploader_manual_backup_json"
+        )
+        if uploaded_backup is not None:
+            try:
+                uploaded_dict = json.load(uploaded_backup)
+                if st.button("📥 Restaurar desde archivo subido", key="btn_apply_uploaded_backup", use_container_width=True):
+                    ok_up, msg_up = dm.restore_from_json_dict(uploaded_dict)
+                    if ok_up:
+                        st.success(msg_up)
+                        st.rerun()
+                    else:
+                        st.error(msg_up)
+            except Exception as e:
+                st.error(f"Error al leer el archivo: {e}")
     st.subheader("☁️ Estado del Auto-Guardado en GitHub")
     
     if dm.is_github_sync_active():
