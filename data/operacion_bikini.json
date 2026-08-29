@@ -1,13 +1,13 @@
 {
   "users": {
     "Carocozz": {
-      "start_weight": 65.6,
+      "start_weight": 66.0,
       "target_weight": 59.0,
       "created_at": "2026-08-29",
       "weights": [
         {
           "date": "2026-08-29",
-          "weight": 65.6
+          "weight": 66.0
         }
       ]
     }
