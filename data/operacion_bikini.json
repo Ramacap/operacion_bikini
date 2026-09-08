@@ -103,6 +103,17 @@
           "weight": 62.3
         }
       ]
+    },
+    "Caroso": {
+      "start_weight": 67.0,
+      "target_weight": 60.0,
+      "created_at": "2026-09-07",
+      "weights": [
+        {
+          "date": "2026-09-07",
+          "weight": 67.0
+        }
+      ]
     }
   }
 }
