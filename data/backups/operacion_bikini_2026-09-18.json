@@ -173,6 +173,17 @@
           "weight": 52.0
         }
       ]
+    },
+    "Tete": {
+      "start_weight": 60.5,
+      "target_weight": 55.0,
+      "created_at": "2026-08-18",
+      "weights": [
+        {
+          "date": "2026-08-18",
+          "weight": 60.5
+        }
+      ]
     }
   }
 }
