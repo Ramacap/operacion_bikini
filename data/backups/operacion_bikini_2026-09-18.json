@@ -154,6 +154,17 @@
           "weight": 66.6
         }
       ]
+    },
+    "Pitu": {
+      "start_weight": 55.0,
+      "target_weight": 50.0,
+      "created_at": "2026-09-01",
+      "weights": [
+        {
+          "date": "2026-09-01",
+          "weight": 55.0
+        }
+      ]
     }
   }
 }
